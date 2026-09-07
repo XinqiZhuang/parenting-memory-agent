@@ -1,0 +1,18 @@
+# API密钥
+.env
+
+# Python缓存
+__pycache__/
+*.py[cod]
+
+# 虚拟环境
+.venv/
+venv/
+
+# 编辑器文件
+.vscode/
+
+# 用户真实数据和临时状态
+data/baby.json
+data/pending_action.json
+data/*.log
