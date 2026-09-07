@@ -1,18 +1,73 @@
 from baby import load_baby
 from intent import classify_intent
 from add_record import add_data
-from update_record import update_data
+from update_record import (
+    update_data,
+    resolve_pending_update
+)
 
 from query_intent import classify_query
 from query_router import query_data
-
 from query.activity import query_activities
 from activity_analysis import analyze_activities
 
 from answer import generate_answer
 
+from pending import (
+    get_pending_action,
+    parse_choice_number,
+    clear_pending_action
+)
+
 
 def route_request(user_input):
+
+
+    # =========================
+    # 优先处理上一轮待确认操作
+    # =========================
+
+    pending_action = get_pending_action()
+
+    if pending_action:
+
+        # 用户可以主动取消上一次操作
+        cancel_keywords = [
+            "取消",
+            "算了",
+            "不用改了",
+            "不修改了"
+        ]
+
+        if any(
+            keyword in user_input
+            for keyword in cancel_keywords
+        ):
+            clear_pending_action()
+
+            return "已经取消这次修改。"
+
+        choice_number = parse_choice_number(
+            user_input
+        )
+
+        if choice_number is None:
+            candidates = pending_action.get(
+                "candidates",
+                []
+            )
+
+            return (
+                "目前有一项修改正在等待确认，"
+                f"请回复1到{len(candidates)}之间的编号，"
+                "例如“第2条”;"
+                "也可以回复“取消”。"
+            )
+
+        return resolve_pending_update(
+            pending_action,
+            choice_number
+        )
 
     # 第一层：判断用户总体想做什么
     intent_result = classify_intent(user_input)
