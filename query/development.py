@@ -20,67 +20,126 @@ DEVELOPMENT_CATEGORIES = {
     "社交发展": "social"
 }
 
+def remove_duplicate_records(records):
+    """
+    删除内容相同的重复发育记录。
+    """
 
+    unique_records = []
+    seen_keys = set()
+
+    for record in records:
+
+        normalized_skill = (
+            normalize_development_skill(
+                record.get("skill", "")
+            )
+        )
+
+        record_key = (
+            record.get("category", ""),
+            normalized_skill,
+            record.get("date"),
+            record.get("age_months"),
+            record.get("description", "")
+        )
+
+        if record_key not in seen_keys:
+            seen_keys.add(record_key)
+            unique_records.append(record)
+
+    return unique_records
+
+    
 def query_development(
     baby,
     target="",
     category=""
 ):
 
-    records = baby["development_milestones"]
-
-    if not records:
-        return "暂时没有成长发育记录"
-
-
-    target = normalize_development_skill(target)
-
-
-    category = DEVELOPMENT_CATEGORIES.get(
-        category,
-        category
+    records = baby.get(
+        "development_milestones",
+        []
     )
 
+    if not records:
+        return {
+            "status": "EMPTY",
+            "record_type": "development",
+            "target": target,
+            "category": category,
+            "records": [],
+            "message": "暂时没有成长发育记录。"
+        }
 
-    if target:
+    normalized_target = (
+        normalize_development_skill(target)
+        if target
+        else ""
+    )
 
-        matched_records = []
+    normalized_category = (
+        DEVELOPMENT_CATEGORIES.get(
+            category,
+            category
+        )
+    )
 
-        for record in records:
-            record_skill = normalize_development_skill(
-                record["skill"]
+    matched_records = []
+
+    for record in records:
+
+        record_skill = (
+            normalize_development_skill(
+                record.get("skill", "")
             )
-            if record_skill == target:
+        )
+
+        record_category = record.get(
+            "category",
+            ""
+        )
+
+        # 用户查询某个具体技能
+        if normalized_target:
+
+            if record_skill == normalized_target:
                 matched_records.append(record)
 
+        # 用户查询某个发育类别
+        elif normalized_category:
 
-        if not matched_records:
-
-            return f"暂时没有找到“{target}”的相关记录"
-
-
-        return matched_records
-
-
-    elif category:
-
-        matched_records = []
-
-        for record in records:
-
-            if record["category"] == category:
-
+            if record_category == normalized_category:
                 matched_records.append(record)
 
+        # 用户没有指定技能或类别
+        else:
+            matched_records.append(record)
 
-        if not matched_records:
+    matched_records = remove_duplicate_records(
+        matched_records
+    )
 
-            return f"暂时没有找到“{category}”的相关记录"
+    if not matched_records:
 
+        return {
+            "status": "NOT_FOUND",
+            "record_type": "development",
+            "target": normalized_target,
+            "category": normalized_category,
+            "records": [],
+            "message": (
+                f"暂时没有找到“"
+                f"{normalized_target or normalized_category}"
+                f"”的相关记录。"
+            )
+        }
 
-        return matched_records
-
-
-    else:
-
-        return records
+    return {
+        "status": "FOUND",
+        "record_type": "development",
+        "target": normalized_target,
+        "category": normalized_category,
+        "records": matched_records,
+        "message": ""
+    }
