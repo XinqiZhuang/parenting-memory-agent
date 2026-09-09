@@ -9,6 +9,8 @@ from query.development import (
     query_development
 )
 
+from query.activity import query_activities
+
 def query_data(baby, query_type, target="", category="" ):
 
     if query_type == "QUERY_WEIGHT":
@@ -21,7 +23,10 @@ def query_data(baby, query_type, target="", category="" ):
         return query_height(baby)
 
 
-    elif query_type == "QUERY_HEAD_CIRCUMFERENCE":
+    elif query_type in [
+        "QUERY_HEAD",
+        "QUERY_HEAD_CIRCUMFERENCE"
+    ]:
 
         return query_head_circumference(baby)
 
@@ -33,7 +38,13 @@ def query_data(baby, query_type, target="", category="" ):
             target,
             category
         )
+   
+    elif query_type == "QUERY_ACTIVITY":
 
+        return query_activities(
+        baby,
+        category
+        )
 
     else:
 

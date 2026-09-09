@@ -27,6 +27,20 @@ def format_age_months(age_months):
 
     return f"{age_text}月龄"
 
+def format_measurement_value(value):
+    """
+    格式化身高、体重、头围等测量值。
+    删除没有必要的.0。
+    """
+
+    if value is None:
+        return None
+
+    if isinstance(value, float):
+        return f"{value:g}"
+
+    return str(value)
+
 
 def format_development_answer(data):
     """
@@ -117,18 +131,98 @@ def format_development_answer(data):
     return "\n".join(answer_lines)
 
 
+def format_growth_answer(data):
+    """
+    根据真实成长测量记录，
+    生成确定性的中文回答。
+    """
+
+    status = data.get("status")
+
+    if status in ["EMPTY", "NOT_FOUND"]:
+        return data.get(
+            "message",
+            "目前没有找到相关成长测量记录。"
+        )
+
+    record = data.get("record")
+
+    if not record:
+        return "目前没有找到相关成长测量记录。"
+
+    metric = data.get("metric")
+    metric_name = data.get(
+        "metric_name",
+        "成长指标"
+    )
+    unit = data.get("unit", "")
+
+    value = record.get(metric)
+
+    value_text = format_measurement_value(
+        value
+    )
+
+    if value_text is None:
+        return f"目前没有记录宝宝的{metric_name}。"
+
+    date = record.get("date")
+
+    age_months = record.get(
+        "age_months"
+    )
+
+    age_text = format_age_months(
+        age_months
+    )
+
+    answer_parts = [
+        (
+            f"宝宝最近一次{metric_name}"
+            f"记录为{value_text}{unit}"
+        )
+    ]
+
+    if date:
+        answer_parts.append(
+            f"测量日期是{date}"
+        )
+
+    if age_text:
+        answer_parts.append(
+            f"当时约{age_text}"
+        )
+
+    if not date and age_text:
+        answer_parts.append(
+            "没有记录具体测量日期"
+        )
+
+    if not date and not age_text:
+        answer_parts.append(
+            "没有记录测量日期和月龄"
+        )
+
+    return "，".join(answer_parts) + "。"
+
 def generate_answer(user_input, data):
 
     # 发育事实查询使用确定性代码回答
-    if (
-        isinstance(data, dict)
-        and
-        data.get("record_type")
-        == "development"
-    ):
-        return format_development_answer(
-            data
+    if isinstance(data, dict):
+
+        record_type = data.get(
+            "record_type"
         )
+
+        if record_type == "development":
+            return format_development_answer(
+                data
+            )
+
+        if record_type == "growth":
+            return format_growth_answer(
+                data
+            )
 
     data_text = json.dumps(
         data,
