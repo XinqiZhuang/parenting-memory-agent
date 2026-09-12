@@ -1,0 +1,367 @@
+{
+  "total": 10,
+  "passed": 10,
+  "failed": 0,
+  "accuracy": 1.0,
+  "results": [
+    {
+      "id": 1,
+      "input": "宝宝今天第一次独立走了。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "development_milestones"
+        },
+        {
+          "type": "field_equals",
+          "list": "development_milestones",
+          "field": "category",
+          "expected": "gross_motor"
+        }
+      ],
+      "check_results": [
+        true,
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [
+          {
+            "category": "gross_motor",
+            "skill": "独立行走",
+            "description": "宝宝今天第一次独立走了。",
+            "date": null,
+            "age_months": null
+          }
+        ],
+        "learning_activities": [],
+        "feeding_records": [],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 2,
+      "input": "宝宝今天第一次清楚地叫妈妈。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "field_equals",
+          "list": "development_milestones",
+          "field": "category",
+          "expected": "language"
+        }
+      ],
+      "check_results": [
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [
+          {
+            "category": "language",
+            "skill": "清楚叫妈妈",
+            "description": "宝宝今天第一次清楚地叫妈妈。",
+            "date": null,
+            "age_months": null
+          }
+        ],
+        "learning_activities": [],
+        "feeding_records": [],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 3,
+      "input": "宝宝会用两个手指捏起小饼干了。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "field_equals",
+          "list": "development_milestones",
+          "field": "category",
+          "expected": "fine_motor"
+        }
+      ],
+      "check_results": [
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [
+          {
+            "category": "fine_motor",
+            "skill": "用两个手指捏起小饼干",
+            "description": "宝宝会用两个手指捏起小饼干了。",
+            "date": null,
+            "age_months": null
+          }
+        ],
+        "learning_activities": [],
+        "feeding_records": [],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 4,
+      "input": "今天陪宝宝玩了10分钟套杯游戏。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "learning_activities"
+        },
+        {
+          "type": "field_equals",
+          "list": "learning_activities",
+          "field": "duration_minutes",
+          "expected": 10
+        }
+      ],
+      "check_results": [
+        true,
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [],
+        "learning_activities": [
+          {
+            "activity": "套杯游戏",
+            "category": "cognitive",
+            "duration_minutes": 10
+          }
+        ],
+        "feeding_records": [],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 5,
+      "input": "宝宝早上喝了180毫升奶。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "feeding_records"
+        },
+        {
+          "type": "field_equals",
+          "list": "feeding_records",
+          "field": "amount_ml",
+          "expected": 180
+        }
+      ],
+      "check_results": [
+        true,
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [],
+        "learning_activities": [],
+        "feeding_records": [
+          {
+            "date": "",
+            "time": "早上",
+            "type": "奶",
+            "foods": [],
+            "amount_ml": 180,
+            "description": ""
+          }
+        ],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 6,
+      "input": "宝宝中午吃了南瓜泥和半个鸡蛋。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "feeding_records"
+        }
+      ],
+      "check_results": [
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [],
+        "learning_activities": [],
+        "feeding_records": [
+          {
+            "date": "",
+            "time": "中午",
+            "type": "辅食",
+            "foods": [
+              "南瓜泥",
+              "鸡蛋"
+            ],
+            "amount_ml": null,
+            "description": "吃了南瓜泥和半个鸡蛋"
+          }
+        ],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 7,
+      "input": "宝宝今天有点咳嗽。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "health_records"
+        }
+      ],
+      "check_results": [
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [],
+        "learning_activities": [],
+        "feeding_records": [],
+        "health_records": [
+          {
+            "type": "咳嗽",
+            "description": "宝宝今天有点咳嗽。"
+          }
+        ],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 8,
+      "input": "今天是宝宝第一次坐地铁。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "memories"
+        }
+      ],
+      "check_results": [
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [],
+        "learning_activities": [],
+        "feeding_records": [],
+        "health_records": [],
+        "memories": [
+          {
+            "event": "第一次坐地铁",
+            "description": "今天是宝宝第一次坐地铁。"
+          }
+        ]
+      },
+      "error": ""
+    },
+    {
+      "id": 9,
+      "input": "宝宝下午扶着沙发走了两步，还玩了10分钟套杯，喝了180毫升奶。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "not_empty",
+          "list": "development_milestones"
+        },
+        {
+          "type": "not_empty",
+          "list": "learning_activities"
+        },
+        {
+          "type": "not_empty",
+          "list": "feeding_records"
+        }
+      ],
+      "check_results": [
+        true,
+        true,
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [
+          {
+            "category": "gross_motor",
+            "skill": "扶着沙发走",
+            "description": "宝宝下午扶着沙发走了两步",
+            "date": null,
+            "age_months": null
+          }
+        ],
+        "learning_activities": [
+          {
+            "activity": "玩套杯",
+            "category": "fine_motor",
+            "duration_minutes": 10
+          }
+        ],
+        "feeding_records": [
+          {
+            "date": "",
+            "time": "",
+            "type": "奶",
+            "foods": [],
+            "amount_ml": 180,
+            "description": "喝了180毫升奶"
+          }
+        ],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    },
+    {
+      "id": 10,
+      "input": "今天天气很好。",
+      "passed": true,
+      "checks": [
+        {
+          "type": "empty",
+          "list": "development_milestones"
+        },
+        {
+          "type": "empty",
+          "list": "learning_activities"
+        },
+        {
+          "type": "empty",
+          "list": "feeding_records"
+        },
+        {
+          "type": "empty",
+          "list": "health_records"
+        },
+        {
+          "type": "empty",
+          "list": "memories"
+        }
+      ],
+      "check_results": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "extracted_data": {
+        "development_milestones": [],
+        "learning_activities": [],
+        "feeding_records": [],
+        "health_records": [],
+        "memories": []
+      },
+      "error": ""
+    }
+  ]
+}

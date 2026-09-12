@@ -1,0 +1,134 @@
+{
+  "total": 14,
+  "passed": 14,
+  "failed": 0,
+  "accuracy": 1.0,
+  "results": [
+    {
+      "id": 1,
+      "input": "宝宝今天第一次独立走了。",
+      "expected": "ADD",
+      "actual": "ADD",
+      "passed": true,
+      "reason": "用户提供了新的宝宝信息（今天第一次独立走了），希望加入宝宝档案。",
+      "error": ""
+    },
+    {
+      "id": 2,
+      "input": "下午宝宝喝了180毫升奶。",
+      "expected": "ADD",
+      "actual": "ADD",
+      "passed": true,
+      "reason": "用户提供了新的宝宝喂养信息（下午喝了180毫升奶），希望记录到宝宝档案中。",
+      "error": ""
+    },
+    {
+      "id": 3,
+      "input": "宝宝昨天有点咳嗽。",
+      "expected": "ADD",
+      "actual": "ADD",
+      "passed": true,
+      "reason": "用户提供了宝宝昨天咳嗽的新信息，希望记录到宝宝档案中。",
+      "error": ""
+    },
+    {
+      "id": 4,
+      "input": "今天陪宝宝玩了十分钟套杯。",
+      "expected": "ADD",
+      "actual": "ADD",
+      "passed": true,
+      "reason": "用户提供了新的宝宝活动信息（今天陪宝宝玩了十分钟套杯），属于希望加入宝宝档案的记录。",
+      "error": ""
+    },
+    {
+      "id": 5,
+      "input": "宝宝会爬了。",
+      "expected": "ADD",
+      "actual": "ADD",
+      "passed": true,
+      "reason": "用户提供了新的宝宝发育信息（会爬了），希望加入宝宝档案。",
+      "error": ""
+    },
+    {
+      "id": 6,
+      "input": "更正一下，宝宝是前天第一次独立走。",
+      "expected": "UPDATE",
+      "actual": "UPDATE",
+      "passed": true,
+      "reason": "用户明确表示要更正之前记录的宝宝第一次独立行走的时间，属于修改已有信息。",
+      "error": ""
+    },
+    {
+      "id": 7,
+      "input": "刚才体重写错了，应该是10.6公斤。",
+      "expected": "UPDATE",
+      "actual": "UPDATE",
+      "passed": true,
+      "reason": "用户指出之前记录的体重信息有误，希望更正为10.6公斤，属于修改已有信息。",
+      "error": ""
+    },
+    {
+      "id": 8,
+      "input": "不是今天开始走，是昨天。",
+      "expected": "UPDATE",
+      "actual": "UPDATE",
+      "passed": true,
+      "reason": "用户明确更正之前记录的宝宝开始走路的时间，从今天改为昨天，属于修改已记录信息。",
+      "error": ""
+    },
+    {
+      "id": 9,
+      "input": "把刚才记录的奶量从180毫升改为150毫升。",
+      "expected": "UPDATE",
+      "actual": "UPDATE",
+      "passed": true,
+      "reason": "用户明确表示要修改之前记录的奶量信息，从180毫升改为150毫升。",
+      "error": ""
+    },
+    {
+      "id": 10,
+      "input": "宝宝什么时候第一次独立走？",
+      "expected": "QUERY",
+      "actual": "QUERY",
+      "passed": true,
+      "reason": "用户询问宝宝第一次独立走路的时间，属于查询宝宝已有信息的问题。",
+      "error": ""
+    },
+    {
+      "id": 11,
+      "input": "宝宝最近一次体重是多少？",
+      "expected": "QUERY",
+      "actual": "QUERY",
+      "passed": true,
+      "reason": "用户询问宝宝最近一次体重，属于查询宝宝已有信息，意图为查询。",
+      "error": ""
+    },
+    {
+      "id": 12,
+      "input": "宝宝最近玩过什么游戏？",
+      "expected": "QUERY",
+      "actual": "QUERY",
+      "passed": true,
+      "reason": "用户询问宝宝最近玩过的游戏，希望查询已有信息。",
+      "error": ""
+    },
+    {
+      "id": 13,
+      "input": "宝宝最近的辅食安排合理吗？",
+      "expected": "QUERY",
+      "actual": "QUERY",
+      "passed": true,
+      "reason": "用户正在询问宝宝辅食安排是否合理，属于对已有宝宝数据的查询和分析需求。",
+      "error": ""
+    },
+    {
+      "id": 14,
+      "input": "宝宝会爬了吗？",
+      "expected": "QUERY",
+      "actual": "QUERY",
+      "passed": true,
+      "reason": "用户询问宝宝是否已经会爬，是在查询宝宝的大运动发展情况，没有提供新信息或要求修改已有记录。",
+      "error": ""
+    }
+  ]
+}
