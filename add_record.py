@@ -1,29 +1,47 @@
 from baby import load_baby, save_baby
-from extract import extract_data
+from extract import (
+    extract_data,
+    ExtractionError
+)
 from datetime import date
-from age import calculate_age_months
+from temporal import parse_event_date, calculate_age_months_at_date
 
 
 def add_data(user_input):
 
     baby = load_baby()
 
-    extracted_data = extract_data(user_input)
+    try:
+        extracted_data = extract_data(user_input)
 
-    print("AI提取结果:")
-    print(extracted_data)
+    except ExtractionError as error:
+        print(f"提取失败：{error}")
+
+        return "记录失败：AI提取的数据格式不正确，宝宝数据没有被保存。"
 
 
     # =========================
     # 成长发育里程碑
     # =========================
 
+    parsed_event_date = parse_event_date(user_input)
+
     for record in extracted_data.get("development_milestones", []):
 
         birth_date = baby["profile"]["birth_date"]
 
-        record["date"] = date.today().isoformat()
-        record["age_months"] = calculate_age_months(birth_date)
+        event_date = (
+            parsed_event_date
+            or record.get("date")
+            or date.today().isoformat()
+        )
+
+        record["date"] = event_date
+
+        record["age_months"] = calculate_age_months_at_date(
+            birth_date,
+            event_date
+        )
 
         baby["development_milestones"].append(record)
 

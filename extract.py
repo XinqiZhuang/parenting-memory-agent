@@ -2,15 +2,68 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import os
 import json
+from pydantic import ValidationError
+from models import ExtractedData
 
 load_dotenv()
 
 api_key = os.getenv("DEEPSEEK_API_KEY")
 
+class ExtractionError(Exception):
+    """
+    DeepSeek输出无法解析或校验时抛出的错误。
+    """
+
+    pass
+
+def validate_extracted_data(data):
+    """
+    使用Pydantic校验DeepSeek提取结果,
+    并转换成干净的普通字典。
+    """
+
+    try:
+        validated_data = (
+            ExtractedData.model_validate(data)
+        )
+
+    except ValidationError as error:
+
+        print("\n=== Pydantic校验失败 ===")
+        print(error)
+        print("========================\n")
+
+        raise ExtractionError(
+            "DeepSeek提取的数据没有通过校验。"
+        ) from error
+
+    return validated_data.model_dump()
+
 client = OpenAI(
     api_key=api_key,
     base_url="https://api.deepseek.com"
 )
+
+def parse_extracted_response(result_text):
+    """
+    将DeepSeek返回的文本解析并校验，
+    最终返回干净的普通字典。
+    """
+
+    try:
+        result = json.loads(result_text)
+
+    except json.JSONDecodeError as error:
+
+        print("\n=== JSON解析失败 ===")
+        print(error)
+        print("====================\n")
+
+        raise ExtractionError(
+            "DeepSeek没有返回合法的JSON。"
+        ) from error
+
+    return validate_extracted_data(result)
 
 # user_input = input("请记录宝宝今天发生的事情：")
 
@@ -100,10 +153,13 @@ def extract_data(user_input):
     )
 
     result_text = response.choices[0].message.content
+
     print("\n=== DeepSeek 原始返回 ===")
     print(repr(result_text))
     print("========================\n")
-    result = json.loads(result_text)
-    return result
+    
+    return parse_extracted_response(
+        result_text
+    )
 
 

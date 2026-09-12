@@ -1,5 +1,8 @@
 from baby import load_baby, save_baby
-from extract import extract_data
+from extract import (
+    extract_data,
+    ExtractionError
+)
 from conflict import update_feeding_record, update_development_record
 from temporal import parse_event_date, calculate_age_months_at_date
 from pending import (
@@ -12,10 +15,16 @@ def update_data(user_input):
 
     baby = load_baby()
 
-    extracted_data = extract_data(user_input)
+    try:
+        extracted_data = extract_data(user_input)
 
-    print("AI提取结果:")
-    print(extracted_data)
+    except ExtractionError as error:
+        print(f"提取失败：{error}")
+
+        return "修改失败：AI提取的数据格式不正确，宝宝数据没有被修改。"
+
+        print("AI提取结果:")
+        print(extracted_data)
 
     updated_anything = False
 
