@@ -20,14 +20,15 @@ def test_retrieve_relevant_parenting_text():
     results = retrieve_chunks(
         "宝宝刚开始走路，需要注意什么？",
         chunks,
-        top_k=2
+        top_k=2,
+        min_score=0.10
     )
 
     assert len(results) == 1
 
     assert "行走" in results[0]["text"]
 
-    assert results[0]["score"] > 0.025
+    assert results[0]["score"] > 0.1
 
 
 if __name__ == "__main__":

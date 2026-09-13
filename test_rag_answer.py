@@ -9,7 +9,7 @@ def test_rag_answer():
         top_k=2,
         chunk_size=80,
         overlap=20,
-        min_score=0.025
+        min_score=0.1
     )
 
     print()
@@ -41,7 +41,7 @@ def test_rag_rejects_irrelevant_question():
         top_k=2,
         chunk_size=80,
         overlap=20,
-        min_score=0.025
+        min_score=0.1
     )
 
     assert result["sources"] == []
