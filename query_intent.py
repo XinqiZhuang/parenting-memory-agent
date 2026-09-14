@@ -16,6 +16,7 @@ def classify_query(user_input):
 
     response = client.chat.completions.create(
         model="deepseek-chat",
+        temperature=0,
         messages=[
             {
                 "role": "system",

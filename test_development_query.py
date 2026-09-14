@@ -112,3 +112,43 @@ def test_development_query():
 
 if __name__ == "__main__":
     test_development_query()
+
+def test_latest_gross_motor_record():
+
+    baby = {
+        "development_milestones": [
+            {
+                "category": "gross_motor",
+                "skill": "爬",
+                "date": "2026-05-15",
+                "age_months": 7
+            },
+            {
+                "category": "gross_motor",
+                "skill": "独立行走",
+                "date": "2026-09-12",
+                "age_months": 12
+            },
+            {
+                "category": "fine_motor",
+                "skill": "捏小物品",
+                "date": "2026-09-13",
+                "age_months": 12
+            }
+        ]
+    }
+
+    result = query_development(
+        baby,
+        category="gross_motor",
+        latest_only=True
+    )
+
+    assert result["status"] == "FOUND"
+
+    assert len(result["records"]) == 1
+
+    assert (
+        result["records"][0]["skill"]
+        == "独立行走"
+    )
