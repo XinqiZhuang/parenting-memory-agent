@@ -116,7 +116,7 @@
 - 使用相关度阈值拒绝无关内容。
 - 要求模型严格依据检索资料回答。
 - 在答案中显示引用资料、页码和相关度。
-- 拒绝汽车、股票等领域外问题。
+- 拒绝不相关的领域外问题。
 
 当前知识库使用《3岁以下婴幼儿健康养育照护指南（试行）》作为演示资料。
 
@@ -366,7 +366,15 @@ Windows PowerShell：
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
+```
+
+如果PowerShell执行策略禁止运行 `Activate.ps1`，不需要修改系统安全策略，可以直接使用虚拟环境中的Python：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m streamlit run streamlit_app.py
 ```
 
 Windows CMD：
