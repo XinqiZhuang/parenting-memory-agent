@@ -4,6 +4,20 @@
 
 项目支持使用自然语言记录、修改和查询宝宝的成长数据，通过 RAG 检索专业育儿资料，并将宝宝照片与成长事件关联，实现基于自然语言的照片回忆召回。
 
+## 界面预览
+
+### 成长记录查询
+
+![成长记录查询](docs/images/01-growth-query.png)
+
+### PDF育儿知识库与引用
+
+![PDF育儿知识库问答](docs/images/02-rag-answer.png)
+
+### 照片回忆
+
+![照片回忆](docs/images/03-photo-memory.png)
+
 ## 项目背景
 
 宝宝的成长信息通常分散在聊天记录、照片、纸质记录和家长记忆中，难以长期整理和查询。
@@ -345,8 +359,6 @@ python -m evaluation.evaluate_rag_retrieval
 git clone https://github.com/XinqiZhuang/parenting-memory-agent.git
 cd parenting-agent
 ```
-
-创建GitHub仓库后，需要将 `<你的GitHub仓库地址>` 替换为真实地址。
 
 ### 2. 创建虚拟环境
 
