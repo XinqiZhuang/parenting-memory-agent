@@ -1,10 +1,36 @@
-
 import json
+from pathlib import Path
 
-DATA_FILE = "data/baby.json"
+
+PROJECT_DIR = Path(__file__).parent
+
+DATA_FILE = (
+    PROJECT_DIR
+    / "data"
+    / "baby.json"
+)
+
+EXAMPLE_DATA_FILE = (
+    PROJECT_DIR
+    / "data"
+    / "baby.example.json"
+)
+
 
 def save_baby(baby):
-    with open(DATA_FILE,"w",encoding="utf-8") as file:
+
+    data_file = Path(DATA_FILE)
+
+    data_file.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    with data_file.open(
+        "w",
+        encoding="utf-8"
+    ) as file:
+
         json.dump(
             baby,
             file,
@@ -14,9 +40,40 @@ def save_baby(baby):
 
 
 def load_baby():
-    with open(DATA_FILE,"r", encoding="utf-8") as file:
+
+    data_file = Path(DATA_FILE)
+
+    example_data_file = Path(
+        EXAMPLE_DATA_FILE
+    )
+
+
+    if not data_file.exists():
+
+        if not example_data_file.exists():
+
+            raise FileNotFoundError(
+                "没有找到宝宝数据文件，"
+                "也没有找到示例数据文件。"
+            )
+
+        with example_data_file.open(
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            example_baby = json.load(
+                file
+            )
+
+        save_baby(example_baby)
+
+
+    with data_file.open(
+        "r",
+        encoding="utf-8"
+    ) as file:
+
         baby = json.load(file)
+
     return baby
-
-
-

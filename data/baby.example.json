@@ -1,0 +1,72 @@
+{
+    "profile": {
+        "name": "示例宝宝",
+        "birth_date": "2025-09-01",
+        "birth_weight_kg": 3.2,
+        "gestational_age_weeks": 39,
+        "premature": false,
+        "nicu_history": false
+    },
+    "growth_records": [
+        {
+            "date": "2025-12-01",
+            "age_months": 3,
+            "height_cm": 62.5,
+            "weight_kg": 6.2,
+            "head_circumference_cm": 40.1
+        },
+        {
+            "date": "2026-03-01",
+            "age_months": 6,
+            "height_cm": 68.0,
+            "weight_kg": 7.5,
+            "head_circumference_cm": 42.5
+        }
+    ],
+    "development_milestones": [
+        {
+            "category": "gross_motor",
+            "skill": "爬",
+            "date": "2026-04-01",
+            "age_months": 7,
+            "description": "宝宝开始向前爬行。"
+        },
+        {
+            "category": "gross_motor",
+            "skill": "独立行走",
+            "date": "2026-09-02",
+            "age_months": 12,
+            "description": "宝宝第一次独立走了三步。"
+        }
+    ],
+    "learning_activities": [
+        {
+            "date": "2026-08-20",
+            "activity": "套杯游戏",
+            "category": "cognitive",
+            "duration_minutes": 10
+        }
+    ],
+    "feeding_records": [
+        {
+            "date": "2026-09-05",
+            "time": "中午",
+            "type": "辅食",
+            "foods": [
+                "南瓜泥",
+                "鸡蛋"
+            ],
+            "amount_ml": null,
+            "description": "尝试了南瓜泥和鸡蛋。"
+        }
+    ],
+    "health_records": [],
+    "memories": [
+        {
+            "event": "第一次坐地铁",
+            "description": "宝宝第一次和家人乘坐地铁。",
+            "date": "2026-08-10",
+            "photos": []
+        }
+    ]
+}
