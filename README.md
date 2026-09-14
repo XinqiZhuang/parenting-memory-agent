@@ -342,7 +342,7 @@ python -m evaluation.evaluate_rag_retrieval
 ### 1. 克隆项目
 
 ```bash
-git clone <你的GitHub仓库地址>
+git clone https://github.com/XinqiZhuang/parenting-memory-agent.git
 cd parenting-agent
 ```
 
