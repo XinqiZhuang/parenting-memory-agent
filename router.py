@@ -118,9 +118,57 @@ def route_request(user_input):
 
         query_type = query_result["query_type"]
 
-        target = query_result.get("target", "")
-        category = query_result.get("category", "")
+        target = (
+            query_result.get("target")
+            or ""
+        )
 
+        category = (
+            query_result.get("category")
+            or ""
+        )
+
+        latest_keywords = [
+            "最近一次",
+            "最新一次",
+            "最后一次",
+            "最近的",
+            "最新的"
+        ]
+
+        latest_only = any(
+            keyword in user_input
+            for keyword in latest_keywords
+        )
+
+
+        if latest_only and any(
+            keyword in target
+            for keyword in latest_keywords
+        ):
+
+            target = ""
+
+
+        if (
+            query_type == "QUERY_FEEDING"
+            and not target
+        ):
+
+            if "辅食" in user_input:
+
+                target = "辅食"
+
+            elif any(
+                keyword in user_input
+                for keyword in [
+                    "喝奶",
+                    "奶量",
+                    "多少奶"
+                ]
+            ):
+
+                target = "奶"
 
         # -------------------------
         # Activity Analysis
@@ -151,7 +199,8 @@ def route_request(user_input):
                 baby,
                 query_type,
                 target,
-                category
+                category,
+                latest_only=latest_only
             )
 
             result = generate_answer(

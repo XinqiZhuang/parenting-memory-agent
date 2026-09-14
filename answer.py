@@ -205,6 +205,140 @@ def format_growth_answer(data):
 
     return "，".join(answer_parts) + "。"
 
+def format_feeding_answer(data):
+    """
+    根据真实饮食记录生成确定性回答。
+    """
+
+    status = data.get("status")
+
+    if status in [
+        "EMPTY",
+        "NOT_FOUND"
+    ]:
+
+        return data.get(
+            "message",
+            "目前没有找到相关饮食记录。"
+        )
+
+
+    records = data.get(
+        "records",
+        []
+    )
+
+    if not records:
+
+        return "目前没有找到相关饮食记录。"
+
+
+    answer_lines = []
+
+    for index, record in enumerate(
+        records,
+        start=1
+    ):
+
+        date = record.get("date")
+
+        time = record.get("time")
+
+        feeding_type = record.get(
+            "type",
+            "饮食"
+        )
+
+        foods = record.get(
+            "foods",
+            []
+        )
+
+        amount_ml = record.get(
+            "amount_ml"
+        )
+
+        description = record.get(
+            "description",
+            ""
+        )
+
+
+        time_parts = []
+
+        if date:
+            time_parts.append(date)
+
+        if time:
+            time_parts.append(time)
+
+        time_text = (
+            " ".join(time_parts)
+            if time_parts
+            else "未记录时间"
+        )
+
+
+        detail_parts = [
+            feeding_type
+        ]
+
+        if foods:
+
+            detail_parts.append(
+                "、".join(foods)
+            )
+
+        if amount_ml is not None:
+
+            amount_text = (
+                format_measurement_value(
+                    amount_ml
+                )
+            )
+
+            detail_parts.append(
+                f"{amount_text}毫升"
+            )
+
+
+        detail_text = "，".join(
+            detail_parts
+        )
+
+
+        if len(records) == 1:
+
+            line = (
+                f"宝宝有一条相关饮食记录："
+                f"{time_text}，"
+                f"{detail_text}。"
+            )
+
+        else:
+
+            line = (
+                f"{index}. "
+                f"{time_text}："
+                f"{detail_text}。"
+            )
+
+
+        if description:
+
+            line += (
+                f"原始描述："
+                f"{description}"
+            )
+
+
+        answer_lines.append(line)
+
+
+    return "\n".join(
+        answer_lines
+    )
+
 def generate_answer(user_input, data):
 
     # 发育事实查询使用确定性代码回答
@@ -221,6 +355,11 @@ def generate_answer(user_input, data):
 
         if record_type == "growth":
             return format_growth_answer(
+                data
+            )
+
+        if record_type == "feeding":
+            return format_feeding_answer(
                 data
             )
 

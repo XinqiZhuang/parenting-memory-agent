@@ -50,11 +50,32 @@ def remove_duplicate_records(records):
 
     return unique_records
 
+def development_sort_key(record):
+    """
+    为发育记录生成时间排序依据。
+    优先使用日期，没有日期时使用月龄。
+    """
+
+    date = record.get("date") or ""
+
+    age_months = record.get(
+        "age_months"
+    )
+
+    if age_months is None:
+        age_months = -1
+
+    return (
+        bool(date),
+        date,
+        age_months
+    )
     
 def query_development(
     baby,
     target="",
-    category=""
+    category="",
+    latest_only=False
 ):
 
     records = baby.get(
@@ -119,6 +140,17 @@ def query_development(
     matched_records = remove_duplicate_records(
         matched_records
     )
+
+    if matched_records and latest_only:
+
+        latest_record = max(
+            matched_records,
+            key=development_sort_key
+        )
+
+        matched_records = [
+            latest_record
+        ]
 
     if not matched_records:
 

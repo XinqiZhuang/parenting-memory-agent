@@ -5,8 +5,87 @@ import streamlit as st
 from router import route_request
 from rag.generator import answer_with_rag
 
+from photo_memory_ui import (
+    render_photo_memory_page,
+)
+from photo_memory import (
+    search_photo_memories,
+)
+from conversation import (
+    build_contextual_input,
+)
 
 PROJECT_DIR = Path(__file__).parent
+
+def show_related_memories(
+    photo_memories
+):
+
+    if not photo_memories:
+
+        return
+
+
+    st.markdown("#### 📷 相关照片回忆")
+
+
+    for memory in photo_memories:
+
+        st.markdown(
+            f"**{memory['event']}**"
+        )
+
+        if memory.get("date"):
+
+            st.caption(
+                memory["date"]
+            )
+
+        if memory.get("description"):
+
+            st.write(
+                memory["description"]
+            )
+
+
+        photo_paths = memory.get(
+            "photos",
+            []
+        )
+
+        column_count = min(
+            3,
+            len(photo_paths)
+        )
+
+        if column_count == 0:
+
+            continue
+
+
+        columns = st.columns(
+            column_count
+        )
+
+
+        for index, photo_path in enumerate(
+            photo_paths
+        ):
+
+            full_path = (
+                PROJECT_DIR
+                / photo_path
+            )
+
+            if full_path.exists():
+
+                columns[
+                    index % column_count
+                ].image(
+                    str(full_path),
+                    use_container_width=True
+                )
+
 
 PDF_PATH = (
     PROJECT_DIR
@@ -33,10 +112,17 @@ mode = st.sidebar.radio(
     "请选择功能",
     [
         "宝宝档案",
+        "照片回忆",
         "育儿知识库"
     ]
 )
 
+
+if mode == "照片回忆":
+
+    render_photo_memory_page()
+
+    st.stop()
 
 if mode == "宝宝档案":
 
@@ -88,6 +174,13 @@ for message in messages:
 
                     st.write(source["text"])
 
+        show_related_memories(
+            message.get(
+                "photo_memories",
+                []
+            )
+        )
+
 
 user_input = st.chat_input(
     input_hint
@@ -95,6 +188,25 @@ user_input = st.chat_input(
 
 
 if user_input:
+
+    previous_user_input = ""
+
+    for previous_message in reversed(
+        messages
+    ):
+
+        if (
+            previous_message["role"]
+            == "user"
+        ):
+
+            previous_user_input = (
+                previous_message[
+                    "content"
+                ]
+            )
+
+            break
 
     messages.append({
         "role": "user",
@@ -114,13 +226,26 @@ if user_input:
 
                 if mode == "宝宝档案":
 
+                    contextual_input = (
+                        build_contextual_input(
+                            user_input,
+                            previous_user_input
+                        )
+                    )
+
                     result = route_request(
-                        user_input
+                        contextual_input
                     )
 
                     answer = str(result)
 
                     sources = []
+
+                    photo_memories = (
+                        search_photo_memories(
+                            contextual_input
+                        )
+                    )
 
                 else:
 
@@ -137,8 +262,14 @@ if user_input:
 
                     sources = result["sources"]
 
+                    photo_memories = []
+
 
                 st.write(answer)
+
+                show_related_memories(
+                    photo_memories
+                )
 
 
                 if sources:
@@ -173,6 +304,8 @@ if user_input:
 
                 sources = []
 
+                photo_memories = []
+
                 st.error(answer)
 
                 print(
@@ -184,5 +317,6 @@ if user_input:
     messages.append({
         "role": "assistant",
         "content": answer,
-        "sources": sources
+        "sources": sources,
+        "photo_memories": photo_memories
     })

@@ -4,14 +4,14 @@ from query.growth import (
     query_height,
     query_head_circumference
 )
-
+from query.feeding import query_feeding
 from query.development import (
     query_development
 )
 
 from query.activity import query_activities
 
-def query_data(baby, query_type, target="", category="" ):
+def query_data(baby, query_type, target="", category="",latest_only=False ):
 
     if query_type == "QUERY_WEIGHT":
 
@@ -36,9 +36,18 @@ def query_data(baby, query_type, target="", category="" ):
         return query_development(
             baby,
             target,
-            category
+            category,
+            latest_only=latest_only
         )
-   
+    
+    elif query_type == "QUERY_FEEDING":
+
+        return query_feeding(
+            baby,
+            target=target,
+            latest_only=latest_only
+        )
+
     elif query_type == "QUERY_ACTIVITY":
 
         return query_activities(

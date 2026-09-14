@@ -16,3 +16,4 @@ venv/
 data/baby.json
 data/pending_action.json
 data/*.log
+data/uploads/
