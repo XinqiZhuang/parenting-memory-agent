@@ -60,10 +60,3 @@ def query_data(baby, query_type, target="", category="",latest_only=False ):
         return "这个查询功能暂时还没有实现"
 
 
-# baby = load_baby()
-
-# user_input = input("请输入你的问题：")
-
-# result = query_data(baby, user_input)
-
-# print(result)

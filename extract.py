@@ -65,7 +65,6 @@ def parse_extracted_response(result_text):
 
     return validate_extracted_data(result)
 
-# user_input = input("请记录宝宝今天发生的事情：")
 
 def extract_data(user_input):
     response = client.chat.completions.create(
