@@ -124,4 +124,8 @@ if __name__ == "__main__":
         log_level=lark.LogLevel.ERROR,
     )
 
-    ws_client.start()
+    try:
+        client.start()
+
+    except KeyboardInterrupt:
+        print("\n飞书连接测试已停止。")

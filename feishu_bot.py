@@ -10,6 +10,8 @@ from lark_oapi.api.im.v1 import (
     ReplyMessageRequestBody,
 )
 
+from audit import record_audit_event
+from family_members import get_family_member
 from router import route_request
 
 
@@ -44,10 +46,11 @@ def extract_user_text(message) -> str:
     user_text = content.get("text", "")
 
     for mention in message.mentions or []:
+
         if mention.key:
             user_text = user_text.replace(
                 mention.key,
-                "",
+                ""
             )
 
     return user_text.strip()
@@ -64,18 +67,18 @@ def format_agent_result(result) -> str:
     return json.dumps(
         result,
         ensure_ascii=False,
-        indent=2,
+        indent=2
     )
 
 
 def reply_text(
     message_id: str,
-    text: str,
-) -> None:
+    text: str
+) -> bool:
 
     content = json.dumps(
         {"text": text},
-        ensure_ascii=False,
+        ensure_ascii=False
     )
 
     request = (
@@ -95,14 +98,18 @@ def reply_text(
     )
 
     if not response.success():
+
         print(
             "回复失败：",
             response.code,
-            response.msg,
+            response.msg
         )
-        return
+
+        return False
 
     print("机器人回复成功。")
+
+    return True
 
 
 def handle_message(
@@ -111,49 +118,122 @@ def handle_message(
 
     message = data.event.message
     sender = data.event.sender
-    message_id = message.message_id
 
-    if getattr(sender, "sender_type", "") == "app":
+    message_id = message.message_id
+    chat_id = message.chat_id
+    actor_id = sender.sender_id.open_id
+
+    member = get_family_member(
+        actor_id
+    )
+
+    actor_name = member[
+        "display_name"
+    ]
+
+    actor_role = member[
+        "role"
+    ]
+
+    if getattr(
+        sender,
+        "sender_type",
+        ""
+    ) == "app":
         return
 
     with request_lock:
 
         if message_id in processed_message_ids:
-            print("忽略重复消息：", message_id)
+
+            print(
+                "忽略重复消息：",
+                message_id
+            )
+
             return
 
-        processed_message_ids.add(message_id)
+        processed_message_ids.add(
+            message_id
+        )
+
+        user_text = ""
 
         try:
-            user_text = extract_user_text(message)
+            user_text = extract_user_text(
+                message
+            )
 
-            print("\n收到育儿问题：", user_text)
+            print(
+                "\n收到育儿问题：",
+                user_text
+            )
+
             print(
                 "发送者：",
-                sender.sender_id.open_id,
+                actor_name,
+                f"({actor_role})"
             )
 
             if not user_text:
-                reply_text(
+
+                answer = "暂时只支持文字消息。"
+
+                reply_succeeded = reply_text(
                     message_id,
-                    "暂时只支持文字消息。",
+                    answer
                 )
+
+                record_audit_event(
+                    message_id=message_id,
+                    chat_id=chat_id,
+                    actor_id=actor_id,
+                    actor_name=actor_name,
+                    actor_role=actor_role,
+                    request_text=(
+                        f"[{message.message_type}]"
+                    ),
+                    response_text=answer,
+                    status=(
+                        "UNSUPPORTED"
+                        if reply_succeeded
+                        else "REPLY_FAILED"
+                    )
+                )
+
                 return
 
             context_id = (
-                f"feishu:{message.chat_id}:"
-                f"{sender.sender_id.open_id}"
+                f"feishu:{chat_id}:{actor_id}"
             )
 
             result = route_request(
                 user_text,
                 context_id=context_id
             )
-            answer = format_agent_result(result)
 
-            reply_text(
+            answer = format_agent_result(
+                result
+            )
+
+            reply_succeeded = reply_text(
                 message_id,
-                answer,
+                answer
+            )
+
+            record_audit_event(
+                message_id=message_id,
+                chat_id=chat_id,
+                actor_id=actor_id,
+                actor_name=actor_name,
+                actor_role=actor_role,
+                request_text=user_text,
+                response_text=answer,
+                status=(
+                    "SUCCESS"
+                    if reply_succeeded
+                    else "REPLY_FAILED"
+                )
             )
 
         except Exception as error:
@@ -164,12 +244,28 @@ def handle_message(
 
             print(
                 "处理消息失败：",
-                repr(error),
+                repr(error)
+            )
+
+            error_answer = (
+                "处理消息时出现错误，请稍后重试。"
             )
 
             reply_text(
                 message_id,
-                "处理消息时出现错误，请稍后重试。",
+                error_answer
+            )
+
+            record_audit_event(
+                message_id=message_id,
+                chat_id=chat_id,
+                actor_id=actor_id,
+                actor_name=actor_name,
+                actor_role=actor_role,
+                request_text=user_text,
+                response_text=error_answer,
+                status="ERROR",
+                error_message=repr(error)
             )
 
 
@@ -201,7 +297,13 @@ if __name__ == "__main__":
         APP_ID,
         APP_SECRET,
         event_handler=event_handler,
-        log_level=lark.LogLevel.ERROR,
+        log_level=lark.LogLevel.ERROR
     )
 
-    ws_client.start()
+    try:
+        ws_client.start()
+
+    except KeyboardInterrupt:
+        print(
+            "\n育儿 Agent 已安全停止。"
+        )

@@ -17,3 +17,5 @@ data/baby.json
 data/pending_action.json
 data/*.log
 data/uploads/
+data/audit_log.jsonl
+data/family_members.json
