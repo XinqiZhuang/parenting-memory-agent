@@ -11,12 +11,18 @@ from pending import (
 )
 from normalize import normalize_development_skill
 
-def update_data(user_input):
+def update_data(
+    user_input,
+    context_id="default"
+):
 
     baby = load_baby()
 
     try:
-        extracted_data = extract_data(user_input)
+        extracted_data = extract_data(
+            user_input,
+            operation="UPDATE"
+        )
 
     except ExtractionError as error:
         print(f"提取失败：{error}")
@@ -34,7 +40,11 @@ def update_data(user_input):
     # =========================
 
     for record in extracted_data.get("development_milestones") or []:
-
+        record = {
+                key: value
+                for key, value in record.items()
+                if value is not None
+            }
         event_date = parse_event_date(user_input)
 
         if event_date:
@@ -62,7 +72,9 @@ def update_data(user_input):
                 "type": "UPDATE_DEVELOPMENT",
                 "candidates": candidates,
                 "new_record": record
-            })
+            },
+            context_id=context_id
+            )
 
             message_lines = [
                 "我找到多条可能需要修改的成长记录，请确认你指的是哪一条："
@@ -125,7 +137,8 @@ def update_data(user_input):
 
 def resolve_pending_update(
     pending_action,
-    choice_number
+    choice_number,
+    context_id="default"
 ):
     """
     根据用户选择的候选编号，
@@ -178,7 +191,7 @@ def resolve_pending_update(
 
     # pending保存之后，原记录可能发生过变化
     if target_record is None:
-        clear_pending_action()
+        clear_pending_action(context_id)
 
         return (
             "原记录已经发生变化，"
@@ -199,7 +212,7 @@ def resolve_pending_update(
     save_baby(baby)
 
     # 操作完成后清除pending状态
-    clear_pending_action()
+    clear_pending_action(context_id)
 
     return (
         f"已经按照你的选择，"

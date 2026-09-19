@@ -20,14 +20,17 @@ from pending import (
 )
 
 
-def route_request(user_input):
+def route_request(
+    user_input,
+    context_id="default"
+):
 
 
     # =========================
     # 优先处理上一轮待确认操作
     # =========================
 
-    pending_action = get_pending_action()
+    pending_action = get_pending_action(context_id)
 
     if pending_action:
 
@@ -43,7 +46,7 @@ def route_request(user_input):
             keyword in user_input
             for keyword in cancel_keywords
         ):
-            clear_pending_action()
+            clear_pending_action(context_id)
 
             return "已经取消这次修改。"
 
@@ -66,7 +69,8 @@ def route_request(user_input):
 
         return resolve_pending_update(
             pending_action,
-            choice_number
+            choice_number,
+            context_id=context_id
         )
 
     # 第一层：判断用户总体想做什么
@@ -98,7 +102,8 @@ def route_request(user_input):
 
         print("→ 进入数据修改流程")
 
-        result = update_data(user_input)
+        result = update_data(user_input,
+                             context_id=context_id)
 
         return result
 

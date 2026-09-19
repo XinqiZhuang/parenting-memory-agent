@@ -66,7 +66,82 @@ def parse_extracted_response(result_text):
     return validate_extracted_data(result)
 
 
-def extract_data(user_input):
+def extract_data(
+    user_input,
+    operation="ADD"
+):
+
+    normalized_operation = (
+        operation.upper().strip()
+    )
+
+    if normalized_operation == "UPDATE":
+
+        operation_prompt = """
+
+当前任务类型是UPDATE。
+
+用户描述的可能不是一个新发生的事件，
+而是要求修改一条已经存在的记录。
+
+UPDATE提取规则：
+
+1. 不要因为这是修改指令就返回空列表。
+2. 必须提取用户明确指定的目标记录。
+3. development_milestones中：
+   category表示目标记录的类别；
+   skill表示用户想修改的能力名称；
+   description表示用户要求改成的新描述。
+4. “大运动”必须转换成gross_motor。
+5. “精细动作”必须转换成fine_motor。
+6. 用户没有要求修改的字段使用null，
+   不要自行补充。
+7. “不要修改日期”表示date应为null，
+   不能把这句话写进description。
+8. 只提取用户明确要求的新值，
+   不要编造日期或月龄。
+
+示例：
+
+用户输入：
+请修改宝宝的大运动发展记录：
+把独立行走的描述改为多人协同测试，
+不要修改日期。
+
+应该返回：
+
+{
+    "development_milestones": [
+        {
+            "category": "gross_motor",
+            "skill": "独立行走",
+            "description": "多人协同测试",
+            "date": null,
+            "age_months": null
+        }
+    ],
+    "learning_activities": [],
+    "feeding_records": [],
+    "health_records": [],
+    "memories": []
+}
+"""
+
+    elif normalized_operation == "ADD":
+
+        operation_prompt = """
+
+当前任务类型是ADD。
+
+请提取用户陈述的新发生的宝宝事件。
+不要把修改指令理解为新记录。
+"""
+
+    else:
+        raise ValueError(
+            f"不支持的操作类型：{operation}"
+        )
+
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
@@ -142,7 +217,8 @@ def extract_data(user_input):
 13. 如果用户说“今天”，使用当前日期。
 14. 如果无法确定日期，不要猜测，填写空字符串。
 
-"""
+""" + operation_prompt
+
             },
             {
                 "role": "user",
