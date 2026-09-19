@@ -10,7 +10,10 @@ from lark_oapi.api.im.v1 import (
     ReplyMessageRequestBody,
 )
 
-from audit import record_audit_event
+from audit import (
+    has_audit_event,
+    record_audit_event
+)
 from family_members import get_family_member
 from router import route_request
 
@@ -144,10 +147,13 @@ def handle_message(
 
     with request_lock:
 
-        if message_id in processed_message_ids:
+        if (
+            message_id in processed_message_ids
+            or has_audit_event(message_id)
+        ):
 
             print(
-                "忽略重复消息：",
+                "忽略已经处理过的消息：",
                 message_id
             )
 
@@ -203,6 +209,31 @@ def handle_message(
 
                 return
 
+            audit_started = record_audit_event(
+                message_id=message_id,
+                chat_id=chat_id,
+                actor_id=actor_id,
+                actor_name=actor_name,
+                actor_role=actor_role,
+                request_text=user_text,
+                response_text="",
+                status="PROCESSING"
+            )
+
+            if not audit_started:
+
+                processed_message_ids.discard(
+                    message_id
+                )
+
+                reply_text(
+                    message_id,
+                    "安全日志暂时无法写入，"
+                    "本次操作没有执行，请稍后重试。"
+                )
+
+                return
+            
             context_id = (
                 f"feishu:{chat_id}:{actor_id}"
             )

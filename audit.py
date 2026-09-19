@@ -116,3 +116,19 @@ def read_audit_events(limit=None):
         return events
 
     return events[-limit:]
+
+def has_audit_event(message_id):
+    """
+    判断一条飞书消息是否已经进入过处理流程。
+    """
+
+    if not message_id:
+        return False
+
+    events = read_audit_events()
+
+    return any(
+        event.get("message_id")
+        == message_id
+        for event in events
+    )

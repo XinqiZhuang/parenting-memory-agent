@@ -45,6 +45,18 @@ def test_record_and_read_audit_events():
 
             events = audit.read_audit_events()
 
+            assert audit.has_audit_event(
+                "message-1"
+            ) is True
+
+            assert audit.has_audit_event(
+                "message-2"
+            ) is True
+
+            assert audit.has_audit_event(
+                "message-not-found"
+            ) is False
+
             assert len(events) == 2
 
             assert (
