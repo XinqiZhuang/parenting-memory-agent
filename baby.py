@@ -1,14 +1,11 @@
 import json
 from pathlib import Path
+from storage import data_path
 
 
 PROJECT_DIR = Path(__file__).parent
 
-DATA_FILE = (
-    PROJECT_DIR
-    / "data"
-    / "baby.json"
-)
+DATA_FILE = data_path("baby.json")
 
 EXAMPLE_DATA_FILE = (
     PROJECT_DIR

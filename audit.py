@@ -2,9 +2,12 @@ import json
 import os
 from datetime import datetime, timezone
 from threading import Lock
+from storage import data_path
 
 
-AUDIT_FILE = "data/audit_log.jsonl"
+AUDIT_FILE = data_path(
+    "audit_log.jsonl"
+)
 
 _audit_lock = Lock()
 

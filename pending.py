@@ -2,9 +2,12 @@ import json
 import os
 import re
 from threading import Lock
+from storage import data_path
 
 
-PENDING_FILE = "data/pending_action.json"
+PENDING_FILE = data_path(
+    "pending_action.json"
+)
 
 DEFAULT_CONTEXT_ID = "default"
 

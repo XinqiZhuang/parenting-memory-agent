@@ -1,8 +1,11 @@
 import json
 import os
+from storage import data_path
 
 
-MEMBERS_FILE = "data/family_members.json"
+MEMBERS_FILE = data_path(
+    "family_members.json"
+)
 
 
 def load_family_members():

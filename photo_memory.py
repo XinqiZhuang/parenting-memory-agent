@@ -8,8 +8,9 @@ from sklearn.feature_extraction.text import (
 from sklearn.metrics.pairwise import (
     cosine_similarity,
 )
+from storage import data_path
 
-UPLOAD_DIR = Path("data/uploads")
+UPLOAD_DIR = data_path("uploads")
 
 ALLOWED_IMAGE_TYPES = {
     ".jpg",
