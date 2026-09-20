@@ -48,11 +48,15 @@ def query_data(baby, query_type, target="", category="",latest_only=False ):
             latest_only=latest_only
         )
 
-    elif query_type == "QUERY_ACTIVITY":
+    elif query_type in [
+        "QUERY_ACTIVITY",
+        "QUERY_LEARNING"
+    ]:
 
         return query_activities(
-        baby,
-        category
+            baby,
+            category=category,
+            target=target
         )
 
     else:
