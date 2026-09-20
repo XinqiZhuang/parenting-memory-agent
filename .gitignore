@@ -19,3 +19,12 @@ data/*.log
 data/uploads/
 data/audit_log.jsonl
 data/family_members.json
+data/*.json
+!data/baby.example.json
+data/*.jsonl
+data/*.sqlite3*
+data/*.tmp
+upgrade-backups/
+parenting-agent-v2-upgrade/
+parenting_agent_v2_upgrade.zip
+.pytest_cache/

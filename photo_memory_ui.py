@@ -87,12 +87,13 @@ def render_photo_memory_page():
                     event_date=(
                         event_date.isoformat()
                     ),
-                    photos=photos
+                    photos=photos,
+                    context_id=st.session_state.get("agent_context_id")
                 )
 
                 st.success("照片回忆保存成功。")
 
-            except ValueError as error:
+            except (ValueError, RuntimeError) as error:
 
                 st.error(str(error))
 
@@ -110,7 +111,7 @@ def render_photo_memory_page():
             "memories",
             []
         )
-        if memory.get("photos")
+        if memory.get("photos") and not memory.get("_deleted_at")
     ]
 
 

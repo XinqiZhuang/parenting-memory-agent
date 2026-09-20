@@ -94,11 +94,12 @@ def test_pending_update_flow():
             == "2026-08-30"
         )
 
-        # 第二条应被修改
+        # 升级安全边界：旧版待确认请求不得直接执行，需重新预览。
         assert (
             second_record["date"]
-            == "2026-09-06"
+            == "2026-09-01"
         )
+        assert "旧版待确认请求" in result
 
         # 完成后pending文件应被清除
         assert not os.path.exists(

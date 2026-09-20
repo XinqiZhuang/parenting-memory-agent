@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 import streamlit as st
 
@@ -106,6 +107,10 @@ st.title("👶 育儿成长 Agent")
 st.caption(
     "记录宝宝成长，并基于专业资料回答育儿问题"
 )
+
+if "agent_context_id" not in st.session_state:
+    st.session_state["agent_context_id"] = "web:" + uuid4().hex
+st.sidebar.caption("本地单家庭演示版；新增、修改、删除须回复“确认”。请勿将无登录界面公开部署。")
 
 
 mode = st.sidebar.radio(
@@ -226,15 +231,11 @@ if user_input:
 
                 if mode == "宝宝档案":
 
-                    contextual_input = (
-                        build_contextual_input(
-                            user_input,
-                            previous_user_input
-                        )
-                    )
-
                     result = route_request(
-                        contextual_input
+                        user_input,
+                        context_id=st.session_state["agent_context_id"],
+                        request_id=uuid4().hex,
+                        actor_name="网页用户"
                     )
 
                     answer = str(result)
@@ -243,7 +244,7 @@ if user_input:
 
                     photo_memories = (
                         search_photo_memories(
-                            contextual_input
+                            user_input
                         )
                     )
 

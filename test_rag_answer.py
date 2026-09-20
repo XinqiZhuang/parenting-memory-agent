@@ -1,7 +1,15 @@
 from rag.generator import answer_with_rag
+from types import SimpleNamespace
 
 
-def test_rag_answer():
+def test_rag_answer(monkeypatch):
+
+    def fake_completion(**kwargs):
+        assert "行走" in kwargs["messages"][-1]["content"]
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(
+            content="应提供有成人看护的活动空间[资料1]。"
+        ))])
+    monkeypatch.setattr("rag.generator.client.chat.completions.create", fake_completion)
 
     result = answer_with_rag(
         question="宝宝刚开始走路，需要注意什么？",
@@ -49,10 +57,5 @@ def test_rag_rejects_irrelevant_question():
     assert "没有找到" in result["answer"]
 
 if __name__ == "__main__":
-
-    test_rag_answer()
-    test_rag_rejects_irrelevant_question()
-
-
-    print()
-    print("完整RAG测试通过")
+    import pytest
+    raise SystemExit(pytest.main([__file__, "-q"]))

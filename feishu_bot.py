@@ -1,340 +1,121 @@
+"""Feishu adapter: authorized single-family use, durable message receipts, no import-time start."""
 import json
 import os
-from threading import Lock
+from concurrent.futures import ThreadPoolExecutor
+from threading import BoundedSemaphore
 
-import lark_oapi as lark
 from dotenv import load_dotenv
-from lark_oapi.api.im.v1 import (
-    P2ImMessageReceiveV1,
-    ReplyMessageRequest,
-    ReplyMessageRequestBody,
-)
 
-from audit import (
-    has_audit_event,
-    record_audit_event
-)
-from family_members import get_family_member
+from family_members import get_family_member, load_family_members
 from router import route_request
 
-
 load_dotenv()
-
-APP_ID = os.getenv("FEISHU_APP_ID")
-APP_SECRET = os.getenv("FEISHU_APP_SECRET")
-
-processed_message_ids = set()
-request_lock = Lock()
+api_client = None
+_slots = BoundedSemaphore(32)
+_executor = None
 
 
-def check_environment() -> None:
-
-    if not APP_ID:
-        raise RuntimeError(
-            "没有读取到 FEISHU_APP_ID，请检查 .env。"
-        )
-
-    if not APP_SECRET:
-        raise RuntimeError(
-            "没有读取到 FEISHU_APP_SECRET，请检查 .env。"
-        )
+def allowed(chat_id, actor_id):
+    chats = {x.strip() for x in os.getenv("FEISHU_ALLOWED_CHAT_IDS", "").split(",") if x.strip()}
+    actors = {x.strip() for x in os.getenv("FEISHU_ALLOWED_USER_IDS", "").split(",") if x.strip()}
+    if chats:
+        return chat_id in chats and (not actors or actor_id in actors)
+    return actor_id in actors or actor_id in load_family_members()
 
 
-def extract_user_text(message) -> str:
-
+def extract_user_text(message):
     if message.message_type != "text":
         return ""
-
-    content = json.loads(message.content)
-    user_text = content.get("text", "")
-
+    data = json.loads(message.content)
+    text = data.get("text", "")
     for mention in message.mentions or []:
-
         if mention.key:
-            user_text = user_text.replace(
-                mention.key,
-                ""
-            )
-
-    return user_text.strip()
+            text = text.replace(mention.key, "")
+    return text.strip()
 
 
-def format_agent_result(result) -> str:
-
-    if isinstance(result, str):
-        return result
-
-    if result is None:
-        return "暂时没有生成回答。"
-
-    return json.dumps(
-        result,
-        ensure_ascii=False,
-        indent=2
-    )
-
-
-def reply_text(
-    message_id: str,
-    text: str
-) -> bool:
-
-    content = json.dumps(
-        {"text": text},
-        ensure_ascii=False
-    )
-
-    request = (
-        ReplyMessageRequest.builder()
-        .message_id(message_id)
-        .request_body(
-            ReplyMessageRequestBody.builder()
-            .msg_type("text")
-            .content(content)
-            .build()
-        )
-        .build()
-    )
-
-    response = api_client.im.v1.message.reply(
-        request
-    )
-
-    if not response.success():
-
-        print(
-            "回复失败：",
-            response.code,
-            response.msg
-        )
-
-        return False
-
-    print("机器人回复成功。")
-
-    return True
+def reply_text(message_id, text):
+    from lark_oapi.api.im.v1 import ReplyMessageRequest, ReplyMessageRequestBody
+    success = True
+    # Keep reply payloads below practical message-size limits.
+    for start in range(0, len(text), 2500):
+        request = (ReplyMessageRequest.builder().message_id(message_id).request_body(
+            ReplyMessageRequestBody.builder().msg_type("text").content(
+                json.dumps({"text": text[start:start + 2500]}, ensure_ascii=False)
+            ).build()).build())
+        response = api_client.im.v1.message.reply(request)
+        if not response.success():
+            print("回复失败，错误码：", response.code)
+            success = False
+    return success
 
 
-def handle_message(
-    data: P2ImMessageReceiveV1
-) -> None:
-
+def process_message(data):
     message = data.event.message
     sender = data.event.sender
-
-    message_id = message.message_id
-    chat_id = message.chat_id
-    actor_id = sender.sender_id.open_id
-
-    member = get_family_member(
-        actor_id
-    )
-
-    actor_name = member[
-        "display_name"
-    ]
-
-    actor_role = member[
-        "role"
-    ]
-
-    if getattr(
-        sender,
-        "sender_type",
-        ""
-    ) == "app":
+    if getattr(sender, "sender_type", "") == "app":
         return
-
-    with request_lock:
-
-        if (
-            message_id in processed_message_ids
-            or has_audit_event(message_id)
-        ):
-
-            print(
-                "忽略已经处理过的消息：",
-                message_id
-            )
-
+    identity = getattr(sender, "sender_id", None)
+    actor_id = getattr(identity, "open_id", "") or getattr(identity, "user_id", "")
+    chat_id = message.chat_id
+    if not actor_id:
+        reply_text(message.message_id, "无法识别发送者，本次未执行。")
+        return
+    if not allowed(chat_id, actor_id):
+        # IDs are identifiers, not access tokens. Do not print request contents or secrets.
+        print(f"未授权会话：chat_id={chat_id} actor_id={actor_id}")
+        reply_text(message.message_id, "此会话尚未获授权。请由项目所有者配置允许的群或用户后重试。")
+        return
+    try:
+        text = extract_user_text(message)
+        if not text:
+            reply_text(message.message_id, "飞书目前支持文字；照片请从网页的“照片回忆”上传。")
             return
-
-        processed_message_ids.add(
-            message_id
-        )
-
-        user_text = ""
-
-        try:
-            user_text = extract_user_text(
-                message
-            )
-
-            print(
-                "\n收到育儿问题：",
-                user_text
-            )
-
-            print(
-                "发送者：",
-                actor_name,
-                f"({actor_role})"
-            )
-
-            if not user_text:
-
-                answer = "暂时只支持文字消息。"
-
-                reply_succeeded = reply_text(
-                    message_id,
-                    answer
-                )
-
-                record_audit_event(
-                    message_id=message_id,
-                    chat_id=chat_id,
-                    actor_id=actor_id,
-                    actor_name=actor_name,
-                    actor_role=actor_role,
-                    request_text=(
-                        f"[{message.message_type}]"
-                    ),
-                    response_text=answer,
-                    status=(
-                        "UNSUPPORTED"
-                        if reply_succeeded
-                        else "REPLY_FAILED"
-                    )
-                )
-
-                return
-
-            audit_started = record_audit_event(
-                message_id=message_id,
-                chat_id=chat_id,
-                actor_id=actor_id,
-                actor_name=actor_name,
-                actor_role=actor_role,
-                request_text=user_text,
-                response_text="",
-                status="PROCESSING"
-            )
-
-            if not audit_started:
-
-                processed_message_ids.discard(
-                    message_id
-                )
-
-                reply_text(
-                    message_id,
-                    "安全日志暂时无法写入，"
-                    "本次操作没有执行，请稍后重试。"
-                )
-
-                return
-            
-            context_id = (
-                f"feishu:{chat_id}:{actor_id}"
-            )
-
-            result = route_request(
-                user_text,
-                context_id=context_id
-            )
-
-            answer = format_agent_result(
-                result
-            )
-
-            reply_succeeded = reply_text(
-                message_id,
-                answer
-            )
-
-            record_audit_event(
-                message_id=message_id,
-                chat_id=chat_id,
-                actor_id=actor_id,
-                actor_name=actor_name,
-                actor_role=actor_role,
-                request_text=user_text,
-                response_text=answer,
-                status=(
-                    "SUCCESS"
-                    if reply_succeeded
-                    else "REPLY_FAILED"
-                )
-            )
-
-        except Exception as error:
-
-            processed_message_ids.discard(
-                message_id
-            )
-
-            print(
-                "处理消息失败：",
-                repr(error)
-            )
-
-            error_answer = (
-                "处理消息时出现错误，请稍后重试。"
-            )
-
-            reply_text(
-                message_id,
-                error_answer
-            )
-
-            record_audit_event(
-                message_id=message_id,
-                chat_id=chat_id,
-                actor_id=actor_id,
-                actor_name=actor_name,
-                actor_role=actor_role,
-                request_text=user_text,
-                response_text=error_answer,
-                status="ERROR",
-                error_message=repr(error)
-            )
+        member = get_family_member(actor_id)
+        context_id = f"feishu:{chat_id}:{actor_id}"
+        answer = route_request(text, context_id=context_id, request_id=message.message_id,
+                               actor_name=member.get("display_name") or actor_id)
+        ok = reply_text(message.message_id, str(answer))
+        print("飞书请求处理完成。" if ok else "回复发送失败；已提交操作有回执，不会重复执行。")
+    except Exception as exc:
+        print("飞书处理异常：", type(exc).__name__)
+        reply_text(message.message_id, "处理暂时失败，请先查询操作日志再重试。")
 
 
-check_environment()
+def handle_message(data):
+    if not _slots.acquire(blocking=False):
+        print("请求队列已满，请稍后重试。")
+        return
+    future = _executor.submit(process_message, data)
+    future.add_done_callback(lambda _: _slots.release())
 
-api_client = (
-    lark.Client.builder()
-    .app_id(APP_ID)
-    .app_secret(APP_SECRET)
-    .log_level(lark.LogLevel.ERROR)
-    .build()
-)
 
-event_handler = (
-    lark.EventDispatcherHandler.builder("", "")
-    .register_p2_im_message_receive_v1(
-        handle_message
-    )
-    .build()
-)
+def main():
+    global api_client, _executor
+    # Python 3.14 no longer creates an event loop implicitly for SDK imports.
+    import asyncio
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
+    import lark_oapi as lark
+    app_id, app_secret = os.getenv("FEISHU_APP_ID"), os.getenv("FEISHU_APP_SECRET")
+    if not app_id or not app_secret:
+        raise SystemExit("请在.env配置FEISHU_APP_ID和FEISHU_APP_SECRET。")
+    api_client = lark.Client.builder().app_id(app_id).app_secret(app_secret).log_level(lark.LogLevel.ERROR).build()
+    _executor = ThreadPoolExecutor(max_workers=4)
+    event_handler = (lark.EventDispatcherHandler.builder("", "")
+                     .register_p2_im_message_receive_v1(handle_message).build())
+    client = lark.ws.Client(app_id, app_secret, event_handler=event_handler, log_level=lark.LogLevel.ERROR)
+    print("育儿Agent V2启动。新增/修改/删除需先预览，再回复“确认”。")
+    print("仅处理已配置家庭成员或FEISHU_ALLOWED_CHAT_IDS指定群的消息。")
+    try:
+        client.start()
+    except KeyboardInterrupt:
+        print("\n停止接收新请求，正在等待已接收请求完成……")
+    finally:
+        _executor.shutdown(wait=True)
 
 
 if __name__ == "__main__":
-
-    print("育儿 Agent 飞书入口正在运行。")
-    print("请保持这个终端窗口开启。")
-
-    ws_client = lark.ws.Client(
-        APP_ID,
-        APP_SECRET,
-        event_handler=event_handler,
-        log_level=lark.LogLevel.ERROR
-    )
-
-    try:
-        ws_client.start()
-
-    except KeyboardInterrupt:
-        print(
-            "\n育儿 Agent 已安全停止。"
-        )
+    main()

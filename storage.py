@@ -14,5 +14,9 @@ DATA_DIR = Path(
 )
 
 
+if not DATA_DIR.is_absolute():
+    DATA_DIR = Path(__file__).resolve().parent / DATA_DIR
+
+
 def data_path(*parts):
     return DATA_DIR.joinpath(*parts)

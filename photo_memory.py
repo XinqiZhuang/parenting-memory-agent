@@ -37,7 +37,8 @@ def create_photo_memory(
     event,
     description,
     event_date,
-    photos
+    photos,
+    context_id=None
 ):
 
     if not event.strip():
@@ -45,6 +46,11 @@ def create_photo_memory(
         raise ValueError(
             "回忆标题不能为空。"
         )
+
+    if not photos or len(photos) > 20:
+        raise ValueError("每次请上传1到20张照片。")
+    if any(len(photo["content"]) > 10 * 1024 * 1024 for photo in photos):
+        raise ValueError("单张照片不能超过10MB。")
 
     memory_id = uuid4().hex
 
@@ -106,6 +112,20 @@ def create_photo_memory(
         "photos": photo_paths
     }
 
+
+    if context_id:
+        # The explicit form submit is the user's confirmation for this UI path.
+        from agent_v2.service import default_repository
+        from agent_v2.engine import add_event
+        with default_repository().transaction() as data:
+            data["memories"].append(memory_record)
+            state = data["_agent_v2"]
+            add_event(state, context_id, "ADD", "PHOTO", None, memory_record, "网页用户")
+            context = state["contexts"].setdefault(context_id, {})
+            context["last_records"] = [memory_record.copy()]
+            context["last_command"] = {"action": "QUERY", "entity": "PHOTO", "selector": {"id": memory_id}}
+            context["generation"] = context.get("generation", 0) + 1
+        return memory_record
 
     baby = load_baby()
 
@@ -193,7 +213,7 @@ def search_photo_memories(
             "memories",
             []
         )
-        if memory.get("photos")
+        if memory.get("photos") and not memory.get("_deleted_at")
     ]
 
     if not memories:

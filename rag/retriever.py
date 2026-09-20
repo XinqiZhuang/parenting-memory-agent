@@ -96,6 +96,9 @@ def split_text(
     overlap=50
 ):
 
+    if chunk_size <= 0 or not 0 <= overlap < chunk_size:
+        raise ValueError("必须满足chunk_size > overlap >= 0")
+
     paragraphs = [
         paragraph.strip()
         for paragraph in text.split("\n\n")
@@ -168,7 +171,7 @@ def retrieve_chunks(
 
         score = float(similarities[index])
 
-        if score < min_score:
+        if score <= 0 or score < min_score:
             continue
 
         original_chunk = chunks[index]

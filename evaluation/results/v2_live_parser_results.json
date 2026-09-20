@@ -1,0 +1,834 @@
+{
+  "timestamp": "2026-09-20T05:35:50.784930+00:00",
+  "passed": 28,
+  "total": 28,
+  "scope": "synthetic live command parsing, not medical or whole-system accuracy",
+  "cases": [
+    {
+      "input": "宝宝最近一次大运动是什么",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "DEVELOPMENT",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "gross_motor",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": true,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天第一次自己用勺子吃饭",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "DEVELOPMENT",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "skill": "自己用勺子吃饭",
+          "category": "fine_motor",
+          "date": "2026-09-20"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝有哪些学习活动记录",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "cognitive",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝有哪些精细动作训练",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "fine_motor",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝有套杯游戏的记录吗",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "套杯游戏",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "这个套杯游戏是精细动作训练吗",
+      "passed": true,
+      "actual": {
+        "action": "ANALYZE",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "套杯游戏",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "给没有日期的那条套杯游戏补上日期2026-08-30",
+      "passed": true,
+      "actual": {
+        "action": "UPDATE",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "套杯游戏",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "date",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "date": "2026-08-30"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "把2026-08-27套杯游戏的日期改成2026-08-30",
+      "passed": true,
+      "actual": {
+        "action": "UPDATE",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "套杯游戏",
+          "category": "",
+          "date": "2026-08-27",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "date": "2026-08-30"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "把套杯游戏的分类改成精细动作",
+      "passed": true,
+      "actual": {
+        "action": "UPDATE",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "套杯游戏",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "category": "fine_motor"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天体重10.6公斤",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "GROWTH",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "date": "2026-09-20",
+          "weight_kg": 10.6
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝最新体重是多少",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "GROWTH",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": true,
+          "earliest": false,
+          "reference": "",
+          "metric": "weight_kg",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝2026-09-01到2026-09-20之间吃过哪些辅食",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "FEEDING",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-20",
+          "type": "solid",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝今天喝奶总共多少毫升",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "FEEDING",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "2026-09-20",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "amount_ml",
+          "aggregate": "sum",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天早上喝了180毫升奶",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "FEEDING",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "amount_ml": 180,
+          "date": "2026-09-20",
+          "time": "早上",
+          "type": "奶"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天大便一次",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "HEALTH",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "date": "2026-09-20",
+          "type": "大便",
+          "description": "大便一次"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝最近的排便记录",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "HEALTH",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "排便",
+          "time": "",
+          "missing_field": "",
+          "latest": true,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天第一次坐飞机",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "MEMORY",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "event": "第一次坐飞机",
+          "date": "2026-09-20"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝第一次站立的照片",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "PHOTO",
+        "selector": {
+          "id": "",
+          "name": "站立",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "删除2026-08-30那条套杯游戏记录",
+      "passed": true,
+      "actual": {
+        "action": "DELETE",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "套杯游戏",
+          "category": "",
+          "date": "2026-08-30",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "操作日志",
+      "passed": true,
+      "actual": {
+        "action": "AUDIT",
+        "entity": "UNKNOWN",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "撤销上次操作",
+      "passed": true,
+      "actual": {
+        "action": "UNDO",
+        "entity": "UNKNOWN",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "一岁宝宝怎样安全地练习走路",
+      "passed": true,
+      "actual": {
+        "action": "KNOWLEDGE",
+        "entity": "UNKNOWN",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝昨天第一次去动物园",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "MEMORY",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "event": "第一次去动物园",
+          "date": "2026-09-19"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "宝宝第一次坐火车是哪天",
+      "passed": true,
+      "actual": {
+        "action": "QUERY",
+        "entity": "MEMORY",
+        "selector": {
+          "id": "",
+          "name": "坐火车",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": true,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {},
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天第一次扶着栏杆站起来",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "DEVELOPMENT",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "skill": "扶着栏杆站立",
+          "category": "gross_motor",
+          "date": "2026-09-20"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天第一次叫妈妈",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "DEVELOPMENT",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "skill": "叫妈妈",
+          "category": "language",
+          "date": "2026-09-20"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "记录宝宝今天第一次玩了10分钟套杯游戏",
+      "passed": true,
+      "actual": {
+        "action": "ADD",
+        "entity": "ACTIVITY",
+        "selector": {
+          "id": "",
+          "name": "",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "activity": "套杯游戏",
+          "duration_minutes": 10,
+          "date": "2026-09-20"
+        },
+        "reason": ""
+      }
+    },
+    {
+      "input": "把第一次坐飞机的日期改成2026-09-18",
+      "passed": true,
+      "actual": {
+        "action": "UPDATE",
+        "entity": "MEMORY",
+        "selector": {
+          "id": "",
+          "name": "第一次坐飞机",
+          "category": "",
+          "date": "",
+          "start_date": "",
+          "end_date": "",
+          "type": "",
+          "time": "",
+          "missing_field": "",
+          "latest": false,
+          "earliest": false,
+          "reference": "",
+          "metric": "",
+          "aggregate": "list",
+          "audit_scope": "self",
+          "limit": 20
+        },
+        "values": {
+          "date": "2026-09-18"
+        },
+        "reason": ""
+      }
+    }
+  ]
+}
