@@ -12,6 +12,10 @@ from photo_memory_ui import (
 from photo_memory import (
     search_photo_memories,
 )
+from family_features.access import require_web_access
+from family_features.theme import apply_theme, render_brand
+from family_features.record_management import render_dialogs
+from family_features.media import resolve_photo
 from conversation import (
     build_contextual_input,
 )
@@ -73,10 +77,10 @@ def show_related_memories(
             photo_paths
         ):
 
-            full_path = (
-                PROJECT_DIR
-                / photo_path
-            )
+            try:
+                full_path = resolve_photo(photo_path)
+            except ValueError:
+                continue
 
             if full_path.exists():
 
@@ -88,48 +92,58 @@ def show_related_memories(
                 )
 
 
-PDF_PATH = (
-    PROJECT_DIR
-    / "knowledge"
-    / "healthy_parenting_guide_0_3.pdf"
-)
-
-
 st.set_page_config(
-    page_title="育儿成长 Agent",
+    page_title="玖玖的成长日记",
     page_icon="👶",
-    layout="centered"
+    layout="wide"
 )
 
-
-st.title("👶 育儿成长 Agent")
-
-st.caption(
-    "记录宝宝成长，并基于专业资料回答育儿问题"
-)
+apply_theme()
+require_web_access(show_logout=False)
+render_brand()
 
 if "agent_context_id" not in st.session_state:
     st.session_state["agent_context_id"] = "web:" + uuid4().hex
-st.sidebar.caption("本地单家庭演示版；新增、修改、删除须回复“确认”。请勿将无登录界面公开部署。")
-
-
+page_labels = {"档案总览": "档案总览", "照片回忆": "照片墙", "宝宝档案": "对话记录",
+               "每日记录": "每日记录", "育儿知识库": "育儿知识库", "每日推送": "推送设置"}
 mode = st.sidebar.radio(
     "请选择功能",
-    [
-        "宝宝档案",
-        "照片回忆",
-        "育儿知识库"
-    ]
+    list(page_labels), format_func=page_labels.get, key="diary_page", label_visibility="collapsed"
 )
+st.sidebar.markdown('<div class="diary-footer">一家人的成长记录<br>飞书与网页共用同一份档案</div>', unsafe_allow_html=True)
+if st.session_state.get("_web_auth") and st.sidebar.button("退出登录"):
+    st.session_state.clear()
+    st.rerun()
+
+if mode == "档案总览":
+    from family_features.dashboard import render_dashboard
+    render_dashboard()
+    render_dialogs()
+    st.stop()
+
+if mode == "每日推送":
+    from family_features.dashboard import render_push_settings
+    render_push_settings()
+    st.stop()
+
+if mode == "每日记录":
+    from family_features.dashboard import render_daily_records
+    render_daily_records()
+    render_dialogs()
+    st.stop()
 
 
 if mode == "照片回忆":
 
     render_photo_memory_page()
+    render_dialogs()
 
     st.stop()
 
 if mode == "宝宝档案":
+
+    st.title("对话记录")
+    st.caption("记录今天的小事，也可以查询、修改已经保存的成长记录。")
 
     message_key = "record_messages"
 
@@ -139,6 +153,13 @@ if mode == "宝宝档案":
     )
 
 else:
+
+    st.title("育儿知识库")
+    st.caption("从已收录的育儿资料中寻找答案，并查看出处。")
+    from rag.knowledge_base import knowledge_inventory
+    with st.expander("已收录资料与读取状态"):
+        st.dataframe(knowledge_inventory(), hide_index=True, use_container_width=True)
+        st.caption("私有书籍用于家庭问答；回答时选中的少量片段会发送到配置的语言模型接口。")
 
     message_key = "rag_messages"
 
@@ -173,7 +194,7 @@ for message in messages:
                     st.markdown(
                         f"**资料{index}｜"
                         f"{source['file']}｜"
-                        f"第{source['page']}页｜"
+                        f"{('第' + str(source['page']) + '页｜') if source.get('page') else ''}"
                         f"相关度 {source['score']:.4f}**"
                     )
 
@@ -252,7 +273,6 @@ if user_input:
 
                     result = answer_with_rag(
                         question=user_input,
-                        file_path=PDF_PATH,
                         top_k=3,
                         chunk_size=500,
                         overlap=150,
@@ -287,7 +307,7 @@ if user_input:
                             st.markdown(
                                 f"**资料{index}｜"
                                 f"{source['file']}｜"
-                                f"第{source['page']}页｜"
+                                f"{('第' + str(source['page']) + '页｜') if source.get('page') else ''}"
                                 f"相关度 "
                                 f"{source['score']:.4f}**"
                             )

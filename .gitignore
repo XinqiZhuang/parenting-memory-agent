@@ -28,3 +28,17 @@ upgrade-backups/
 parenting-agent-v2-upgrade/
 parenting_agent_v2_upgrade.zip
 .pytest_cache/
+
+# Family feature runtime and local configuration
+.env.*
+!.env.example
+data/config-backups/
+runtime-data/
+parenting-agent-family-upgrade/
+parenting_agent_family_upgrade.zip
+
+# Private books and transfer archives must never be committed
+data/knowledge/
+private-knowledge/
+parenting-server-transfer*.zip
+parenting-private-knowledge*.zip

@@ -207,14 +207,11 @@ def search_photo_memories(
 
     baby = load_baby()
 
-    memories = [
-        memory
-        for memory in baby.get(
-            "memories",
-            []
-        )
-        if memory.get("photos") and not memory.get("_deleted_at")
-    ]
+    from agent_v2.schema import COLLECTIONS, NAME_FIELDS
+    memories = [dict(record, event=record.get(NAME_FIELDS.get(kind, "event"), "照片记录"))
+                for kind, collection in COLLECTIONS.items() if kind != "PHOTO"
+                for record in baby.get(collection, [])
+                if record.get("photos") and not record.get("_deleted_at")]
 
     if not memories:
 

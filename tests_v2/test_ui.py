@@ -22,6 +22,7 @@ def test_streamlit_chat_uses_isolated_context(monkeypatch):
     route = Mock(return_value="准备补日期，尚未写入。")
     monkeypatch.setattr("router.route_request", route)
     app = AppTest.from_file(str(APP)).run(timeout=15)
+    app.sidebar.radio[0].set_value("宝宝档案").run(timeout=15)
     app.chat_input[0].set_value("另外一条补日期").run(timeout=15)
     assert not app.exception
     assert route.call_args.args == ("另外一条补日期",)

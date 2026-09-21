@@ -8,7 +8,7 @@ from agent_v2.parser import parse_command
 
 
 BASE_CASES = [
-    ("宝宝最近一次大运动是什么", "QUERY", "DEVELOPMENT", {"category": "gross_motor", "latest": True}),
+    ("宝宝最近一次大运动是什么", "QUERY", "DEVELOPMENT", {"category": "gross_motor", "latest": True, "scope": "development_and_activity"}),
     ("记录宝宝今天第一次自己用勺子吃饭", "ADD", "DEVELOPMENT", {}),
     ("宝宝有哪些学习活动记录", "QUERY", "ACTIVITY", {}),
     ("宝宝有哪些精细动作训练", "QUERY", "ACTIVITY", {"category": "fine_motor"}),

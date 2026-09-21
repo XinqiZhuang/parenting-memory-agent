@@ -1,16 +1,11 @@
 import json
 import os
-from pathlib import Path
 
 
 def evidence_answer(question, records=None):
     """Read-only generation grounded in selected records and retrieved passages."""
-    from rag.retriever import build_document_chunks, retrieve_chunks
-    path = Path(__file__).resolve().parents[1] / "knowledge" / "healthy_parenting_guide_0_3.pdf"
-    sources = []
-    if path.exists():
-        chunks = build_document_chunks(path, chunk_size=500, overlap=100)
-        sources = retrieve_chunks(question, chunks, top_k=3, min_score=0.04)
+    from rag.knowledge_base import search_knowledge
+    sources = search_knowledge(question, top_k=3, min_score=0.04)
     if not sources and not records:
         return "没有检索到足够的育儿资料，不能据此给出建议。"
     from dotenv import load_dotenv
@@ -41,5 +36,6 @@ def evidence_answer(question, records=None):
     answer = result.choices[0].message.content or "未生成回答，请重试。"
     if sources:
         answer += "\n\n检索来源（是否支持具体结论仍需核对）：\n" + "\n".join(
-            f"[资料{i}] {r.get('file', path.name)} 第{r.get('page', '?')}页" for i, r in enumerate(sources, 1))
+            f"[资料{i}] {r.get('file', '资料')}" + (f" 第{r['page']}页" if r.get('page') else "")
+            for i, r in enumerate(sources, 1))
     return answer

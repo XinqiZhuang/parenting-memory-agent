@@ -1,0 +1,57 @@
+services:
+  web:
+    build: .
+    image: parenting-memory-agent:family-v3
+    env_file: .env
+    environment:
+      APP_ENV: production
+      PARENTING_DATA_DIR: /data
+    volumes:
+      - ./runtime-data:/data
+    ports:
+      - "127.0.0.1:8501:8501"
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5)"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+  bot:
+    image: parenting-memory-agent:family-v3
+    env_file: .env
+    environment:
+      APP_ENV: production
+      PARENTING_DATA_DIR: /data
+    volumes:
+      - ./runtime-data:/data
+    command: ["python", "feishu_bot.py"]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+  scheduler:
+    image: parenting-memory-agent:family-v3
+    env_file: .env
+    environment:
+      APP_ENV: production
+      PARENTING_DATA_DIR: /data
+    volumes:
+      - ./runtime-data:/data
+    command: ["python", "run_scheduler.py"]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+  gateway:
+    image: caddy:2
+    profiles: ["public"]
+    environment:
+      FAMILY_DOMAIN: ${FAMILY_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+volumes:
+  caddy-data:
+  caddy-config:

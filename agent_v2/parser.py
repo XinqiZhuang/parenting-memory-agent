@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime, timezone, timedelta
 
 from pydantic import ValidationError
@@ -36,8 +37,9 @@ PROMPT = """你是育儿记录操作解析器。你只输出JSON操作计划，�
 本系统单家庭单宝宝。一次支持一条记录一个操作；多个实体/多条写入请UNKNOWN并要求拆分。
 action: ADD新增，UPDATE修改已有，DELETE删除已有，QUERY查询真实记录，
 ANALYZE根据记录分析，KNOWLEDGE询问通用育儿知识，AUDIT操作日志，UNDO撤销自己最近一次写入，UNKNOWN不明。
+RECLASSIFY将已有MEMORY/PHOTO回忆转为ACTIVITY学习活动：selector定位原记录，values只填activity和category，保留原照片日期描述。
 entity: GROWTH生长测量，DEVELOPMENT里程碑，ACTIVITY游戏早教训练，FEEDING喂养，
-HEALTH健康，MEMORY回忆，PHOTO有照片的回忆。UNKNOWN用于不确定和日志/知识。
+HEALTH健康，MEMORY回忆，PHOTO所有类型中有关联照片的记录。UNKNOWN用于不确定和日志/知识。
 selector仅用于查找旧记录。values仅用于新增或修改后的新值，两者严格分开。
 例：把8月27日套杯游戏的日期改为8月30日：selector.date是8月27日，values.date是8月30日。
 给已有记录补日期是UPDATE，不是ADD；“另外一条”用reference=another，明确缺日期用missing_field=date。
@@ -60,6 +62,10 @@ FEEDING记录吃喝，HEALTH记录健康；“第一次”也不改变这些事�
 平均值aggregate=average；查询记录条数aggregate=count。查询游戏总时长metric=duration_minutes。
 只查询数量时不能把数字写进values。询问谁改了用AUDIT、selector.audit_scope=family；普通日志self。
 “宝宝有哪些精细动作训练”是QUERY/ACTIVITY/category=fine_motor；“精细动作发展记录”是QUERY/DEVELOPMENT。
+“最近一次大运动/精细动作/认知/语言/社交是什么时候”没有限定里程碑时，selector.scope=development_and_activity，同时查能力与练习。
+明确“练习走、训练、早教、游戏”查询ACTIVITY；“什么时候第一次学会/首次独立完成/发育里程碑”才仅查DEVELOPMENT。
+当前请求本身说清楚了对象时，不得让历史改变查询范围。PHOTO查询和删除可以匹配学习活动上的照片。
+clear_fields只用于用户明确要求清空字段的UPDATE；不能因为用户没提某字段就清空。
 日期必须YYYY-MM-DD。没有日期就省略，不能默认今天。明确说今天/昨天/前天才换算。
 禁止生成id/photos/文件路径/角色/内部字段作为values；照片上传由界面处理。
 values不要出现null、空串，未修改字段省略。QUERY等只读values必须{}。
@@ -74,7 +80,7 @@ values不要出现null、空串，未修改字段省略。QUERY等只读values�
 用户：记录宝宝第一次玩拼插积木，玩了10分钟
 {"action":"ADD","entity":"ACTIVITY","selector":{},"values":{"activity":"拼插积木","duration_minutes":10}}
 用户：宝宝最近一次大运动是什么
-{"action":"QUERY","entity":"DEVELOPMENT","selector":{"category":"gross_motor","latest":true},"values":{}}
+{"action":"QUERY","entity":"DEVELOPMENT","selector":{"category":"gross_motor","latest":true,"scope":"development_and_activity"},"values":{}}
 用户：宝宝有套杯游戏的记录吗
 {"action":"QUERY","entity":"ACTIVITY","selector":{"name":"套杯游戏"},"values":{}}
 用户：这个套杯游戏不是精细动作训练吗
@@ -92,10 +98,40 @@ values不要出现null、空串，未修改字段省略。QUERY等只读values�
 """
 
 
+def explicit_command(text):
+    """Complete, unambiguous requests do not depend on conversation history or a model."""
+    clean = text.strip().rstrip("？?。！!")
+    match = re.fullmatch(r"(?:请(?:查询|查一下)?|查一下|查询)?\s*(?:宝宝)?(?:最近一次|最新一次|上一次)(大运动|精细动作|认知|语言|社交)(?:活动|训练)?(?:是什么时候|是什么|是啥|是哪天|记录|什么时候)?", clean)
+    if match:
+        from agent_v2.schema import CATEGORIES
+        category = next(key for key, name in CATEGORIES.items() if name == match[1])
+        scope = "entity" if re.search(r"(?:活动|训练)(?:是什么时候|是什么|是哪天|记录|什么时候)?$", clean) else "development_and_activity"
+        return Command(action="QUERY", entity="ACTIVITY" if scope == "entity" else "DEVELOPMENT",
+                       selector={"category": category, "latest": True, "scope": scope})
+    match = re.fullmatch(r"(?:请查询|查询|查一下)?(?:宝宝)?(?:最近一次|最新一次|上一次)((?:练习|训练).+?)(?:是什么时候|是哪天|什么时候|的记录)", clean)
+    if match:
+        return Command(action="QUERY", entity="ACTIVITY", selector={"name": match[1], "latest": True})
+    match = re.fullmatch(r"(?:请)?删除(?:这条)?记录\s*(?:编号)?\s*[：:=]?\s*([a-fA-F0-9]{8,32})", clean)
+    if match:
+        return Command(action="DELETE", selector={"id": match[1].lower()})
+    match = re.fullmatch(r"(?:请)?删除(.+?)的照片(?:记录|回忆)?", clean)
+    if match:
+        name = match[1].removeprefix("宝宝").strip()
+        day = re.search(r"\d{4}-\d{2}-\d{2}", name)
+        if day:
+            name = name.replace(day[0], "").strip(" 的“”\"'")
+        if name and name not in {"全部", "所有", "这条", "刚才", "上一条"}:
+            return Command(action="DELETE", entity="PHOTO", selector={"name": name, "date": day[0] if day else ""})
+    return None
+
+
 def parse_command(text, context=None, *, caller=None, today=None):
     text = str(text).strip()
     if not text or len(text) > 6000:
         raise ParseError("请输入1到6000字的一条请求")
+    explicit = explicit_command(text)
+    if explicit is not None:
+        return explicit
     if text in {"操作日志", "查看操作日志", "最近操作日志", "刚才修改了什么", "刚才记录了什么", "你刚才记录的宝宝新信息具体日志是什么"}:
         return Command(action="AUDIT")
     if text in {"撤销", "撤销刚才的修改", "撤销上次操作", "撤销最近一次操作"}:

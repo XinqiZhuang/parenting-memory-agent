@@ -39,9 +39,10 @@ def read_document_pages(file_path):
 
             page_text = page.extract_text() or ""
 
-            page_text = clean_document_text(
-                page_text
-            )
+            # Repair only the original verified guide, never another book.
+            bundled = Path(__file__).resolve().parents[1] / "knowledge" / "healthy_parenting_guide_0_3.pdf"
+            if path.resolve() == bundled.resolve():
+                page_text = clean_document_text(page_text)
 
             pages.append({
                 "text": page_text,

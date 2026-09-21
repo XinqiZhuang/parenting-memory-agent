@@ -1,6 +1,7 @@
 """Feishu adapter: authorized single-family use, durable message receipts, no import-time start."""
 import json
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor
 from threading import BoundedSemaphore
 
@@ -32,6 +33,47 @@ def extract_user_text(message):
         if mention.key:
             text = text.replace(mention.key, "")
     return text.strip()
+
+
+def extract_post(message):
+    content = json.loads(message.content)
+    post = content if "content" in content else content.get("zh_cn", next(iter(content.values()), {}))
+    text, images = [], []
+    for row in post.get("content", []):
+        for node in row:
+            if node.get("tag") == "text":
+                text.append(node.get("text", ""))
+            elif node.get("tag") == "img" and node.get("image_key"):
+                images.append(node["image_key"])
+    return "".join(text).strip(), images
+
+
+def addressed_to_bot(message):
+    if getattr(message, "chat_type", "p2p") != "group":
+        return True
+    expected_id = os.getenv("FEISHU_BOT_OPEN_ID", "")
+    expected_name = os.getenv("FEISHU_BOT_NAME", "育儿助手Agent")
+    for mention in message.mentions or []:
+        identity = getattr(getattr(mention, "id", None), "open_id", "")
+        if (expected_id and identity == expected_id) or (not expected_id and getattr(mention, "name", "") == expected_name):
+            return True
+    return False
+
+
+def image_window_open(context_id):
+    from agent_v2.service import default_repository
+    with default_repository().transaction() as data:
+        ctx = data["_agent_v2"]["contexts"].get(context_id, {})
+        return time.time() < ctx.get("image_window_until", 0)
+
+
+def open_image_window(context_id):
+    from agent_v2.service import default_repository
+    with default_repository().transaction() as data:
+        ctx = data["_agent_v2"]["contexts"].setdefault(context_id, {})
+        ctx["image_window_until"] = time.time() + 180
+    return ("接下来3分钟可以接收你发送的照片。\n群聊中推荐在同一条富文本消息里@我并附上图片，"
+            "也可以私聊机器人发图。单独的群图片需平台已开放群消息接收权限。\n每张不超过10MB。")
 
 
 def reply_text(message_id, text):
@@ -67,16 +109,46 @@ def process_message(data):
         reply_text(message.message_id, "此会话尚未获授权。请由项目所有者配置允许的群或用户后重试。")
         return
     try:
-        text = extract_user_text(message)
-        if not text:
-            reply_text(message.message_id, "飞书目前支持文字；照片请从网页的“照片回忆”上传。")
-            return
         member = get_family_member(actor_id)
         context_id = f"feishu:{chat_id}:{actor_id}"
-        answer = route_request(text, context_id=context_id, request_id=message.message_id,
-                               actor_name=member.get("display_name") or actor_id)
+        actor_name = member.get("display_name") or actor_id
+        addressed = addressed_to_bot(message)
+        if not addressed and not (message.message_type == "image" and image_window_open(context_id)):
+            return
+        if message.message_type == "image":
+            image_keys = [json.loads(message.content)["image_key"]]
+            text = ""
+        elif message.message_type == "post":
+            text, image_keys = extract_post(message)
+        else:
+            text, image_keys = extract_user_text(message), []
+        if image_keys:
+            from family_features.media import stage_photo, handle_photo_text, MAX_PHOTOS
+            from family_features.transport import download_photo
+            if len(image_keys) > MAX_PHOTOS:
+                reply_text(message.message_id, "一次最多8张照片，请减少数量后重新发送。")
+                return
+            for index, image_key in enumerate(image_keys):
+                content = download_photo(api_client, message.message_id, image_key)
+                answer = stage_photo(content, context_id, f"{message.message_id}:image:{index}", actor_name)
+            # A caption builds a preview; only a later explicit confirmation writes it.
+            if text and text != "上传照片" and answer.startswith("已收到"):
+                caption_answer = handle_photo_text(text, context_id, f"{message.message_id}:caption", actor_name)
+                if caption_answer is not None:
+                    answer = caption_answer
+        elif text == "上传照片":
+            answer = open_image_window(context_id)
+        elif text:
+            from family_features.media import handle_photo_text
+            answer = handle_photo_text(text, context_id, message.message_id, actor_name)
+            if answer is None:
+                answer = route_request(text, context_id=context_id, request_id=message.message_id, actor_name=actor_name)
+        else:
+            answer = "支持文字与静态照片。请发送文字、图片，或在网页上传照片。"
         ok = reply_text(message.message_id, str(answer))
         print("飞书请求处理完成。" if ok else "回复发送失败；已提交操作有回执，不会重复执行。")
+    except ValueError as exc:
+        reply_text(message.message_id, str(exc))
     except Exception as exc:
         print("飞书处理异常：", type(exc).__name__)
         reply_text(message.message_id, "处理暂时失败，请先查询操作日志再重试。")

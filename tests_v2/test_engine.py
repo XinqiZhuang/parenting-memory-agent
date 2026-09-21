@@ -58,7 +58,10 @@ def test_crud_undo_and_audit_all_entities(repo, entity):
     assert live(repo, entity)[0]["date"] == "2026-09-19"
     logs = request(repo, Command(action="AUDIT"))
     assert "UPDATE" in logs and "DELETE" in logs and "UNDO" in logs
-    assert "2026-09-19" in logs and "2026-09-20" in logs
+    # Check the event-date diff, not the wall-clock audit timestamp.
+    original_date = PAYLOADS[entity].get("date", "未记录")
+    update_log = next(line for line in logs.splitlines() if " | UPDATE | " in line)
+    assert f"日期：{original_date} → 2026-09-19" in update_log
 
 
 def seed_activities(repo, extra=False):

@@ -35,6 +35,7 @@ class StrictModel(BaseModel):
 
 
 class Selector(StrictModel):
+    scope: Literal["entity", "development_and_activity"] = "entity"
     id: str = ""
     name: str = ""
     category: str = ""
@@ -75,16 +76,30 @@ class Selector(StrictModel):
 
 
 class Command(StrictModel):
-    action: Literal["ADD", "QUERY", "UPDATE", "DELETE", "ANALYZE", "KNOWLEDGE", "AUDIT", "UNDO", "UNKNOWN"]
+    action: Literal["ADD", "QUERY", "UPDATE", "DELETE", "RECLASSIFY", "ANALYZE", "KNOWLEDGE", "AUDIT", "UNDO", "UNKNOWN"]
     entity: Literal["GROWTH", "DEVELOPMENT", "ACTIVITY", "FEEDING", "HEALTH", "MEMORY", "PHOTO", "UNKNOWN"] = "UNKNOWN"
     selector: Selector = Field(default_factory=Selector)
     values: dict = Field(default_factory=dict)
+    clear_fields: list[str] = Field(default_factory=list)
     reason: str = ""
 
     @model_validator(mode="after")
     def validate_payload(self):
+        if self.clear_fields:
+            allowed_clear = ALLOWED_FIELDS.get(self.entity, set()) - {NAME_FIELDS.get(self.entity)}
+            if self.action != "UPDATE" or set(self.clear_fields) - allowed_clear or set(self.clear_fields) & set(self.values):
+                raise ValueError("只可明确清空可选字段，不能与修改值重复")
+        if self.selector.scope != "entity" and (self.action not in {"QUERY", "ANALYZE"} or self.entity not in {"DEVELOPMENT", "ACTIVITY"}):
+            raise ValueError("跨类型检索只用于发展与活动的查询或分析")
         if self.action in {"ADD", "UPDATE"}:
-            self.values = validate_values(self.entity, self.values, adding=self.action == "ADD")
+            if self.values or not self.clear_fields:
+                self.values = validate_values(self.entity, self.values, adding=self.action == "ADD")
+        elif self.action == "RECLASSIFY":
+            if self.entity not in {"MEMORY", "PHOTO"}:
+                raise ValueError("目前只支持把回忆转为学习活动")
+            self.values = validate_values("ACTIVITY", self.values)
+            if set(self.values) - {"activity", "category"}:
+                raise ValueError("转换类型时只修改活动名称和分类，保留原日期与描述")
         elif self.values:
             raise ValueError("查询等只读操作不接受写入字段")
         return self
@@ -113,8 +128,13 @@ def validate_values(entity, values, adding=False):
                 raise ValueError("食物必须是非空文本列表")
         elif not isinstance(value, str) or not value.strip():
             raise ValueError(f"{key}必须是非空文本")
-        if key == "date" and date.fromisoformat(value).isoformat() != value:
-            raise ValueError("日期必须是YYYY-MM-DD")
+        if key == "date":
+            try:
+                valid_date = date.fromisoformat(value).isoformat() == value
+            except ValueError:
+                valid_date = False
+            if not valid_date:
+                raise ValueError("日期无效，请填写真实日期，例如2026-09-20；照片日期不清楚可填“未知”")
         if key == "category" and value not in CATEGORIES:
             raise ValueError("分类无效")
         cleaned[key] = value.strip() if isinstance(value, str) else value
